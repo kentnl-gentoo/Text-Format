@@ -15,13 +15,15 @@ Text::Format - Various subroutines to manipulate text.
         bodyIndent     => '',
         rightFill      => 0,
         rightAlign     => 0,
+        leftMargin     => 0,
+        rightMargin    => 0,
         expandTabs     => 0,
         extraSpace     => 0,
         abbrevs        => {}, # reference to a hash
         text           => [], # reference to a list
         hangingIndent  => 0,
         hangingText    => [], # reference to a list
-    }); # these are the default settings
+    }); # these are the default values
 
     $text = Text::Format->new();
     print $text->wrap(@text);
@@ -67,6 +69,12 @@ leading 'whitespace' than there will be a single word on each line.
 This will let you make a simple word list which could be indented or
 right aligned.  There is a chance for croaking if you try to subvert the
 module.
+General setup should be explained with the below graph.
+
+                              Columns
+<------------------------------------------------------------>
+<---------><----->                                <---------->
+Left Margin Indent                                Right Margin
 
 =over 4
 
@@ -74,36 +82,40 @@ module.
 
 Allows to do basic formatting of text into paragraphs, with indent for
 first line and following lines separately.  Can specify tab size and
-columns, width of total text, right fill with spaces and right align.
-Strips all leading and trailing whitespace before proceding.  If right
-alignment is set or tab expansion is set or hanging indents is set then
-all tabs are expanded to spaces.
+columns, width of total text, right fill with spaces and right align,
+right margin and left margin.  Strips all leading and trailing
+whitespace before proceding.  If right alignment is set or tab expansion
+is set or hanging indents is set then all tabs are expanded to spaces.
 
 =item fill @ARRAY || \@ARRAY || [<FILEHANDLE>] || NOTHING
 
 Considers each element of text as a paragraph and if the indents are the
 same for first line and the rest of the lines then they are separated by
 a single empty line otherwise they follow one under the other.  If
-hanging indent is set then a single ampty line will separate each
-paragraph as well.
+hanging indent is set then a single empty line will separate each
+paragraph as well.  Calls wrap to do the actual formatting.
 
 =item center @ARRAY || NOTHING
 
-Centers a list of strings. empty lines appear as, you guessed it, empty
-lines.  Center strips all leading and trailing whitespace before
-proceding.
+Centers a list of strings in @ARRAY or internal text.  Empty lines
+appear as, you guessed it, empty lines.  Center strips all leading and
+trailing whitespace before proceding.  Left margin and right margin can
+be set.
 
 =item expand @ARRAY || NOTHING
 
-Expand tabs in the list of text to tabstop number of spaces.
+Expand tabs in the list of text to tabstop number of spaces in @ARRAY or
+internal text.
 
 =item unexpand @ARRAY || NOTHING
 
-Tabstop number of spaces are turned into tabs.
+Tabstop number of spaces are turned into tabs in @ARRAY or internal
+text.
 
 =item columns NUMBER || NOTHING
 
-Set width of text or retrieve width.
+Set width of text or retrieve width.  This is total width and includes
+indentation and the right and left margins.
 
 =item tabstop NUMBER || NOTHING
 
@@ -117,6 +129,14 @@ Set right fill to true or retrieve its value.
 
 Set right align to true or retrieve its value.
 
+=item leftMargin NUMBER || NOTHING
+
+Set or get width of left margin.
+
+=item rightMargin NUMBER || NOTHING
+
+Set or get width of right margin.
+
 =item expandTabs 0 || 1 || NOTHING
 
 Expand leading tabs to spaces, or in case of center, expand internal
@@ -126,7 +146,7 @@ tabs.  Returns current setting of attribute.
 
 Add to the current abbreviations, takes a reference to your array, if
 called a second time the original reference is removed.  Returns the
-current INTERNAL abbreviations
+current INTERNAL abbreviations.
 
 =item extraSpace 0 || 1 || NOTHING
 
@@ -185,7 +205,7 @@ make up a nice wordlist.
 =head1 AUTHOR
 
 Gabor Egressy <gabor@vmunix.com>, some suggestions for improvement by
-Tom Phoenix, Andreas Koenig, Brad Appleton, and Byron Brummer
+Tom Phoenix, Brad Appleton, Byron Brummer, and Andreas Koenig
 
 Copyright (c) 1998 Gabor Egressy.  All rights reserved.  All wrongs
 reversed.  This program is free software; you can redistribute and/or
@@ -193,7 +213,7 @@ modify it under the same terms as Perl itself.
 
 =head1 TODO
 
-    Add the following features
+    Add the following features :
 
     1.  support for non-breaking whitespace
         - use hash to store the regex on which not to break eg.
@@ -205,15 +225,16 @@ use Carp;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '0.32';
+$VERSION = '0.33';
 
 my ($make_line,%abbrev,$is_abbrev);
 
 # local abbreviations, you can add your own with add_abbrevs()
-%abbrev = (Mr => 1,
-          Mrs => 1,
-           Sr => 1,
-           Jr => 1,
+%abbrev = (Mr  => 1,
+           Mrs => 1,
+           Ms  => 1,
+           Sr  => 1,
+           Jr  => 1,
 );
 
 # similar to Text::Wrap::wrap except that it sticks a newline at the end
@@ -234,13 +255,13 @@ sub wrap(\$@)
     @wrap =  @{$this->{_text}}
         if @wrap < 1;
 
-    my ($first_lead,$rest_lead) = ($this->{_findent},$this->{_bindent});
-    my ($flead,$rlead) = ($first_lead,$rest_lead);
+    my ($first_indent,$body_indent) = ($this->{_findent},$this->{_bindent});
+    my ($findent,$bindent) = ($first_indent,$body_indent);
 
-    $flead =~ s/\t/' ' x $this->{_tabs}/eg;
-    $rlead =~ s/\t/' ' x $this->{_tabs}/eg;
+    $findent =~ s/\t/' ' x $this->{_tabs}/eg;
+    $bindent =~ s/\t/' ' x $this->{_tabs}/eg;
 
-    ($first_lead,$rest_lead) = ($flead,$rlead)
+    ($first_indent,$body_indent) = ($findent,$bindent)
         if $this->{_align} && ! $this->{_fill}
             || $this->{_exp} || $this->{_hindent};
 
@@ -251,7 +272,8 @@ sub wrap(\$@)
     @wrap = ();
     my ($line,$width,$abbrev);
     $abbrev = 0;
-    $width = $this->{_cols} - length($flead);
+    $width = $this->{_cols} - length($findent)
+        - $this->{_lmargin} - $this->{_rmargin};
     $line = shift @words;
     local (*is_abbrev) = $is_abbrev;
     local (*make_line) = $make_line;
@@ -268,10 +290,11 @@ sub wrap(\$@)
         else { last; }
         $abbrev = is_abbrev($this,$_);
     }
-    push @wrap,$this->make_line($line,$first_lead,$width)
+    push @wrap,$this->make_line($line,$first_indent,$width)
         if defined $line;
     $line = $_;
-    $width = $this->{_cols} - length($rlead);
+    $width = $this->{_cols} - length($bindent)
+        - $this->{_lmargin} - $this->{_rmargin};
     $abbrev = 0;
     $abbrev = is_abbrev($this,$line)
         if defined $line;
@@ -284,12 +307,12 @@ sub wrap(\$@)
             $line .= ' ' . $_;
         }
         else {
-            push @wrap,$this->make_line($line,$rest_lead,$width);
+            push @wrap,$this->make_line($line,$body_indent,$width);
             $line = $_;
         }
         $abbrev = is_abbrev($this,$_);
     }
-    push @wrap,$this->make_line($line,$rest_lead,$width)
+    push @wrap,$this->make_line($line,$body_indent,$width)
         if defined $line;
 
     if($this->{_hindent} && @wrap > 0) {
@@ -297,12 +320,13 @@ sub wrap(\$@)
             if length($this->{_hindcurr}) < 1;
         my ($fchar) = $wrap[0] =~ /(\S)/;
         my $white = index $wrap[0],$fchar;
-        if($white  - 1 > length($this->{_hindcurr})) {
-            $white = length($this->{_hindcurr});
-            $wrap[0] =~ s/^ {$white}/$this->{_hindcurr}/;
+        if($white  - $this->{_lmargin} - 1 > length($this->{_hindcurr})) {
+            $white = length($this->{_hindcurr}) + $this->{_lmargin};
+            $wrap[0] =~
+                s/^ {$white}/' ' x $this->{_lmargin} . $this->{_hindcurr}/e;
         }
         else {
-            unshift @wrap,$this->{_hindcurr} . "\n";
+            unshift @wrap,' ' x $this->{_lmargin} . $this->{_hindcurr} . "\n";
         }
     }
 
@@ -355,6 +379,7 @@ sub center(\$@)
     @center =  @{$this->{_text}}
         if @center < 1;
     my $tabs;
+    my $width = $this->{_cols} - $this->{_lmargin} - $this->{_rmargin};
 
     for (@center) {
         s/(?:^\s+|\s+$)|\n//g;
@@ -362,8 +387,10 @@ sub center(\$@)
             if $this->{_exp};
         $tabs = tr/\t//; # count tabs
         substr($_,0,0) =
-                ' ' x int(($this->{_cols} - length($_)
+                ' ' x int(($width - length($_)
                 - $tabs * $this->{_tabs} + $tabs) / 2)
+            if length > 0;
+        substr($_,0,0) = ' ' x $this->{_lmargin}
             if length > 0;
         substr($_,length) = "\n";
     }
@@ -421,6 +448,8 @@ sub new()
             _bindent  => '',
             _fill     => 0,
             _align    => 0,
+            _lmargin  => 0,
+            _rmargin  => 0,
             _exp      => 0,
             _space    => 0,
             _abbrs    => {},
@@ -443,6 +472,10 @@ sub new()
             if defined $ref->{rightFill};
         $conf->{_align} = $ref->{rightAlign}
             if defined $ref->{rightAlign};
+        $conf->{_lmargin} = $ref->{leftMargin}
+            if defined $ref->{leftMargin};
+        $conf->{_rmargin} = $ref->{rightMargin}
+            if defined $ref->{rightMargin};
         $conf->{_exp} = $ref->{expandTabs}
             if defined $ref->{expandTabs};
         $conf->{_space} = $ref->{extraSpace}
@@ -482,6 +515,10 @@ sub config
         if defined $conf->{rightFill};
     $this->{_align} = $conf->{rightAlign}
         if defined $conf->{rightAlign};
+    $this->{_lmargin} = $conf->{leftMargin}
+        if defined $conf->{leftMargin};
+    $this->{_rmargin} = $conf->{rightMargin}
+        if defined $conf->{rightMargin};
     $this->{_exp} = $conf->{expandTabs}
         if defined $conf->{expandTabs};
     $this->{_space} = $conf->{extraSpace}
@@ -546,6 +583,22 @@ sub rightAlign(\$;$)
     croak "Bad method call" unless ref $this;
 
     @_ ? $this->{_align} = abs int shift : $this->{_align};
+}
+
+sub leftMargin(\$;$)
+{
+    my $this = shift;
+    croak "Bad method call" unless ref $this;
+
+    @_ ? $this->{_lmargin} = abs int shift : $this->{_lmargin};
+}
+
+sub rightMargin(\$;$)
+{
+    my $this = shift;
+    croak "Bad method call" unless ref $this;
+
+    @_ ? $this->{_rmargin} = abs int shift : $this->{_rmargin};
 }
 
 # it's used by wrap, fill and center
@@ -622,10 +675,11 @@ $make_line = sub
     my $this = shift;
     my ($line,$lead_white,$width) = @_;
     my $fill = '';
+    my $lmargin = ' ' x $this->{_lmargin};
 
     $fill = ' ' x ($width - length($line))
         if $this->{_fill} && ! $this->{_align};
-    $line = $lead_white . $line . $fill . "\n"
+    $line = $lmargin . $lead_white . $line . $fill . "\n"
         if defined $line;
     substr($line,0,0) = ' ' x ($this->{_cols} - (length($line) - 1))
         if $this->{_align} && ! $this->{_fill} && defined $line;
