@@ -17,8 +17,16 @@ unexpand()      turn spaces into tabs.  first calls expand() to expand
                 tabs into spaces and then turns tabstop number of spaces
                 into tabs, you can set tabstop size with tabstop().
 
+Text::NWrap
+
+wrap()          simple interface to Text::Format->format(), acts similar
+                to Text::Wrap::wrap()
+
 There are some incompatible changes compared to version 0.33.  Look at
 the Changes file to see what they are.
+This release has no changes with regard to functionality of
+Text::Format, it just adds the module Text::NWrap and there are some
+internal changes to make inheritance better.
 
 To install :
 
