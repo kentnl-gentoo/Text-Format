@@ -1,5 +1,12 @@
 Revision history for Perl extension Text::Format.
 
+0.50 Sat Feb 21 10:19:33 1998
+    - there were no bugs but I figured that the new feature should
+      really have its own release.  I also tried to make the
+      justification a little faster, and the extra spaces are now added
+      starting on the right side of the text instead of the left
+    - fixed up the docs a little as well
+
 0.46 Wed Feb 18 17:19:43 1998
     - fixed bug in justify when there was only one word left for the
       last line it would consider the previous line to be the last line
@@ -80,3 +87,11 @@ Revision history for Perl extension Text::Format.
       basically the same as Text::Wrap at this point just without the
       chance for dying, it's just a basic module - Andreas Koenig
       suggested to make it object oriented
+
+Revision history for Perl extension Text::NWrap.
+
+0.11 Sat Feb  7 14:55:39 1998
+    - silly bug fix, bug crept in at last moment after testing
+
+0.10 Fri Feb  6 18:37:13 1998
+    - added the module Text::NWrap which is meant to replace Text::Wrap.

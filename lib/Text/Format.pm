@@ -8,24 +8,24 @@ B<Text::Format> - Various subroutines to format text.
 
     use Text::Format;
 
-    $text = Text::Format->new( 
+    $text = Text::Format->new ( 
         {
-            text           => [], # all
-            columns        => 72, # format, paragraphs, center
-            leftMargin     =>  0, # format, paragraphs, center
-            rightMargin    =>  0, # format, paragraphs, center
-            firstIndent    =>  4, # format, paragraphs
-            bodyIndent     =>  0, # format, paragraphs
-            rightFill      =>  0, # format, paragraphs
-            rightAlign     =>  0, # format, paragraphs
-            justify        =>  0, # format, paragraphs
-            extraSpace     =>  0, # format, paragraphs
-            abbrevs        => {}, # format, paragraphs
-            hangingIndent  =>  0, # format, paragraphs
-            hangingText    => [], # format, paragraphs
-            noBreak        =>  0, # format, paragraphs
-            noBreakRegex   => {}, # format, paragraphs
-            tabstop        =>  8, # expand, unexpand, center
+            text           =>  [], # all
+            columns        =>  72, # format, paragraphs, center
+            leftMargin     =>   0, # format, paragraphs, center
+            rightMargin    =>   0, # format, paragraphs, center
+            firstIndent    =>   4, # format, paragraphs
+            bodyIndent     =>   0, # format, paragraphs
+            rightFill      =>   0, # format, paragraphs
+            rightAlign     =>   0, # format, paragraphs
+            justify        =>   0, # format, paragraphs
+            extraSpace     =>   0, # format, paragraphs
+            abbrevs        =>  {}, # format, paragraphs
+            hangingIndent  =>   0, # format, paragraphs
+            hangingText    =>  [], # format, paragraphs
+            noBreak        =>   0, # format, paragraphs
+            noBreakRegex   =>  {}, # format, paragraphs
+            tabstop        =>   8, # expand, unexpand,  center
         }
     ); # these are the default values
 
@@ -48,7 +48,7 @@ B<Text::Format> - Various subroutines to format text.
 =head1 DESCRIPTION
 
 The B<format> routine will format under all circumstances even if the
-width isn't enough to contain the longest words.  B<Text::Wrap> will die
+width isn't enough to contain the longest words.  I<Text::Wrap> will die
 under these circumstances, although I am told this is fixed.  If columns
 is set to a small number and words are longer than that and the leading
 'whitespace' than there will be a single word on each line.  This will
@@ -56,10 +56,11 @@ let you make a simple word list which could be indented or right
 aligned.  There is a chance for croaking if you try to subvert the
 module.  If you don't pass in text then the internal text is worked on,
 though not modfied.
-B<Text::Format> is meant for more powerful text formatting than
-B<Text::Wrap> allows.  I also have a module called B<Text::NWrap> that
-is meant as a direct replacement for B<Text::Wrap>.  B<Text::NWrap>
-requires B<Text::Format>
+I<Text::Format> is meant for more powerful text formatting than
+I<Text::Wrap> allows.  I also have a module called I<Text::NWrap> that
+is meant as a direct replacement for I<Text::Wrap>.  I<Text::NWrap>
+requires I<Text::Format> since it uses I<Text::Format-E<gt>format> to do the
+actual wrapping but gives you the interface of I<Text::Wrap>.
 
 General setup should be explained with the below graph.
 
@@ -69,18 +70,20 @@ General setup should be explained with the below graph.
  leftMargin  indent  text is formatted into here  rightMargin
 
 indent is firstIndent or bodyIndent depending on where we are in the
-paragraph
+paragraph.
 
 =over 4
 
 =item B<format> @ARRAY || \@ARRAY || [<FILEHANDLE>] || NOTHING
 
-Allows to do basic formatting of text into a paragraph, with indent for
-first line and body set separately.  Can specify width of total text,
-right fill with spaces and right align, right margin and left margin.
-Strips all leading and trailing whitespace before proceeding.  Text is
-first split into words and then reassembled.  If no text is passed in
-then the internal text in the object is formatted.
+Allows to do some advanced formatting of text into a paragraph, with
+indent for first line and body set separately.  Can specify total width
+of text, right fill with spaces or right align or justify (align to both
+margins), right margin and left margin, non-breaking space, two spaces
+at end of sentence, hanging indents (tagged paragraphs).  Strips all
+leading and trailing whitespace before proceeding.  Text is first split
+into words and then reassembled.  If no text is passed in then the
+internal text in the object is formatted.
 
 =item B<paragraphs> @ARRAY || \@ARRAY || [<FILEHANDLE>] || NOTHING
 
@@ -88,8 +91,9 @@ Considers each element of text as a paragraph and if the indents are the
 same for first line and the body then the paragraphs are separated by a
 single empty line otherwise they follow one under the other.  If hanging
 indent is set then a single empty line will separate each paragraph as
-well.  Calls B<format> to do the actual formatting.  If no text is
-passed in then the internal text in the object is formatted.
+well.  Calls I<format> to do the actual formatting.  If no text is
+passed in then the internal text in the object is formatted, though not
+changed.
 
 =item B<center> @ARRAY || NOTHING
 
@@ -131,8 +135,8 @@ indentation and the right and left margins.
 
 =item B<tabstop> NUMBER || NOTHING
 
-Set tabstop size or retrieve tabstop size, only used by expand and
-unexpand and center.
+Set tabstop size or retrieve tabstop size, only used by expand, unexpand
+and center.
 
 =item B<firstIndent> NUMBER || NOTHING
 
@@ -156,41 +160,42 @@ the margin.
 
 =item B<rightFill> 0 || 1 || NOTHING
 
-Set right fill to true or retrieve its value.  The filling is done with
-spaces.  Keep in mind that if rightAlign is also set then both rightFill
-and rightAlign are ignored.
+Set right fill or retrieve its value.  The filling is done with spaces.
+Keep in mind that if I<rightAlign> is also set then both I<rightFill>
+and I<rightAlign> are ignored.
 
 =item B<rightAlign> 0 || 1 || NOTHING
 
-Set right align to true or retrieve its value.  Text is aligned with the
-right side of the margin.  Keep in mind that if rightFill is also set
-then both rightFill and rightAlign are ignored.
+Set right align or retrieve its value.  Text is aligned with the right
+side of the margin.  Keep in mind that if I<rightFill> is also set then
+both I<rightFill> and I<rightAlign> are ignored.
 
 =item B<justify> 0 || 1 || NOTHING
 
-Set justify to true or retrieve its value.  Text is aligned with both
-margins, adding extra spaces as necessary to align text with left and
-right margins.  Keep in mind that if either of rightAlign or rightFill
-are set then justify is ignored.
+Set justify or retrieve its value.  Text is aligned with both margins,
+adding extra spaces as necessary to align text with left and right
+margins.  Keep in mind that if either of I<rightAlign> or I<rightFill>
+are set then I<justify> is ignored, even if both are set in which case
+they are all ignored.
 
 =item B<text> \@ARRAY || NOTHING
 
-Pass in a reference to your text that you want the routines to
-manipulate.  Returns the text held in the object.
+Pass in a reference to your text, or an anonymous array of text that you
+want the routines to manipulate.  Returns the text held in the object.
 
 =item B<hangingIndent> 0 || 1 || NOTHING
 
 Use hanging indents in front of a paragraph, returns current value of
-attribute.
+attribute.  This is also called a tagged paragraph.
 
 =item B<hangingText> \@ARRAY || NOTHING
 
 The text that will be displayed in front of each paragraph, if you call
-B<format> then only the first element is used, if you call B<paragraphs>
-then B<paragraphs> cycles through all of them.  If you have more
+I<format> then only the first element is used, if you call I<paragraphs>
+then I<paragraphs> cycles through all of them.  If you have more
 paragraphs than elements in your array than the remainder of the
 paragraphs will not have a hanging indented text.  Pass a reference to
-your array.
+your array.  This is also called a tagged paragraph.
 
 =item B<noBreak> 0 || 1 || NOTHING
 
@@ -205,8 +210,7 @@ eg.
     {'^Mrs?\.$' => '^\S+$','^\S+$' => '^(?:S|J)r\.$'}
 
 don't break names such as 
-Mr. Jones, Mrs. Jones
-Jones Jr.
+Mr. Jones, Mrs. Jones, Jones Jr.
 
 The breaking algorithm is simple.  If there should not be a break at the
 current end of sentence, then a backtrack is done till there are two
@@ -217,16 +221,17 @@ This is so you can make a list of names for example.
 
 =item B<extraSpace> 0 || 1 || NOTHING
 
-Add extra space after end of sentence, normally B<format> would add 1
+Add extra space after end of sentence, normally I<format> would add 1
 space after end of sentence, if this is set to 1 then 2 spaces are used.
 Abbreviations are not followed by two spaces.  There are a few internal
-abbreviations and you can add your own to the object with B<abbrevs>
+abbreviations and you can add your own to the object with I<abbrevs>
 
 =item B<abbrevs> \%HASH || @ARRAY || NOTHING
 
 Add to the current abbreviations, takes a reference to your hash or an
 array of abbreviations, if called a second time the original reference
-is removed.  Returns the current INTERNAL abbreviations.
+is removed and replaced by the new one.  Returns the current INTERNAL
+abbreviations.
 
 =back
 
@@ -309,20 +314,21 @@ use Carp;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '0.46';
+$VERSION = '0.50';
 
-# local abbreviations, you can add your own with add_abbrevs()
+# local abbreviations, you can add your own with abbrevs()
 my %abbrev = (
-        Mr  => 1,
-        Mrs => 1,
-        Ms  => 1,
-        Jr  => 1,
-        Sr  => 1,
+    Mr  => 1,
+    Mrs => 1,
+    Ms  => 1,
+    Jr  => 1,
+    Sr  => 1,
 );
 
 # formats text into a nice paragraph format.  can set a variety of
-# attributes such as first line indent body indent left and right
-# margin, right align, right fill with spaces, non-breaking spaces
+# attributes such as first line indent, body indent, left and right
+# margin, right align, right fill with spaces, non-breaking spaces,
+# justification to both margins
 sub format($@)
 {
     my $this = shift;
@@ -350,7 +356,7 @@ sub format($@)
     $line = shift @words;
     $abbrev = $this->__is_abbrev($line)
         if defined $line;
-    while ($_ = shift @words) {
+    while (defined ($_ = shift @words)) {
         if(length($_) + length($line) < $width - 1
                 || ($line !~ /[.?!]['"]?$/ || $abbrev)
                 && length($_) + length($line) < $width) {
@@ -373,7 +379,7 @@ sub format($@)
     $abbrev = 0;
     $abbrev = $this->__is_abbrev($line)
         if defined $line;
-    while ($_ = shift @words) {
+    while (defined ($_ = shift @words)) {
         if(length($_) + length($line) < $width - 1
                 || ($line !~ /[.?!]['"]?$/ || $abbrev)
                 && length($_) + length($line) < $width) {
@@ -388,7 +394,8 @@ sub format($@)
                 if defined $line;
             $line = $_;
         }
-        $abbrev = $this->__is_abbrev($_);
+        $abbrev = $this->__is_abbrev($_)
+            if defined $_;
     }
     push @wrap,$this->__make_line($line,$bindent,$width,0)
         if defined $line;
@@ -528,23 +535,23 @@ sub new($;$)
         if ref $this;
 
     $conf = {
-            _cols         => 72,
-            _tabs         =>  8,
-            _findent      =>  4,
-            _bindent      =>  0,
-            _fill         =>  0,
-            _align        =>  0,
-            _justify      =>  0,
-            _lmargin      =>  0,
-            _rmargin      =>  0,
-            _space        =>  0,
-            _abbrs        => {},
-            _text         => [],
-            _hindent      =>  0,
-            _hindtext     => [],
-            _hindcurr     => '',
-            _nobreak      =>  0,
-            _nobreakregex => {},
+        _cols          =>  72,
+        _tabs          =>   8,
+        _findent       =>   4,
+        _bindent       =>   0,
+        _fill          =>   0,
+        _align         =>   0,
+        _justify       =>   0,
+        _lmargin       =>   0,
+        _rmargin       =>   0,
+        _space         =>   0,
+        _abbrs         =>  {},
+        _text          =>  [],
+        _hindent       =>   0,
+        _hindtext      =>  [],
+        _hindcurr      =>  '',
+        _nobreak       =>   0,
+        _nobreakregex  =>  {},
     };
 
     if(ref $ref eq 'HASH') {
@@ -818,19 +825,20 @@ sub __make_line($$$$$)
     $fill = ' ' x ($width - length($line))
         if $this->{'_fill'} && ! $this->{'_align'};
     if($this->{'_justify'} && ! ($this->{'_fill'} || $this->{'_align'})
-            && defined $line && $line =~ m/\S+\s+\S+/ && $not_last) {
+            && defined $line && $line =~ /\S+\s+\S+/ && $not_last) {
         my $spaces = $width - length($line);
         my @words = split /(\s+)/,$line;
-        LOOP: for (@words) {
-            next LOOP
-                if m/\S/;
-            last LOOP
-                if $spaces <= 0;
+        my $ws = int ($spaces / int (@words / 2)); # for filling all gaps
+        $spaces %= int (@words / 2)
+            if $ws > 0; # if we must fill between every single word
+        for (reverse @words) {
+            next
+                if /^\S/;
+            substr($_,0,0) = ' ' x $ws;
+            $spaces || next;
             substr($_,0,0) = ' ';
             --$spaces;
         }
-        goto LOOP
-            if $spaces > 0;
         $line = join '',@words;
     }
     $line = $lmargin . $lead_white . $line . $fill . "\n"
@@ -851,8 +859,8 @@ sub __is_abbrev($$)
 
     $word =~ s/\.$//
         if defined $word; # remove period if there is one
-    # if we have an abbreviation OR no space is wanted after sentence
-    # endings
+    # if we have an abbreviation OR no extra space is wanted after
+    # sentence endings
     return 1
         if ! $this->{'_space'}
             || exists($abbrev{$word}) || exists(${$this->{'_abbrs'}}{$word});
@@ -895,7 +903,7 @@ sub __do_break($$$)
             $next_line = $2 . ' ' . $next_line;
             $line =~ s/\s+$//;
         }
-        # else, no breakpoint found and must break here anyways :->
+        # else, no breakpoint found and must break here anyways :<
     }
     ($line,$next_line);
 }

@@ -1,24 +1,31 @@
-Text::Format
+Text::Format VERSION 0.50
 
-format()        format text into a paragraph.  text is first broken into
+format()        Format text into a paragraph.  Text is first broken into
                 words and then joined back together to make up the
-                paragraph.
+                paragraph.  There are numerous attributes you can set to
+                your liking.
 
-paragraphs()    treats each element of the array passed in as a separate
+paragraphs()    Treats each element of the array passed in as a separate
                 paragraph and passes them to format() for formatting.
-                the list returned will be then formatted into separate
-                paragraphs
+                The list returned will be then formatted into separate
+                paragraphs.
 
-center()        centers all the lines that were passed in.
+center()        Centers all the lines that were passed in.
 
-expand()        expand tabs into spaces.
+expand()        Expand tabs into spaces.
 
-unexpand()      turn spaces into tabs.  first calls expand() to expand
+unexpand()      Turn spaces into tabs.  First calls expand() to expand
                 tabs into spaces and then turns tabstop number of spaces
                 into tabs, you can set tabstop size with tabstop().
 
+Text::NWrap VERSION 0.11
+
+wrap()          simple interface to Text::Format->format(), acts similar
+                to Text::Wrap::wrap()
+
 There are some incompatible changes compared to version 0.33.  Look at
 the Changes file to see what they are.
+There are also some new features.
 
 To install :
 
