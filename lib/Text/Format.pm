@@ -315,7 +315,7 @@ use Carp;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '0.50';
+$VERSION = '0.52';
 
 # local abbreviations, you can add your own with abbrevs()
 my %abbrev = (
@@ -333,7 +333,8 @@ my %abbrev = (
 sub format($@)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
     my @wrap = @_
         if @_ > 0;
 
@@ -347,7 +348,8 @@ sub format($@)
 
     my @words = split /\s+/,join ' ',@wrap;
     shift @words
-        if $words[0] eq '';
+        unless defined($words[0]) && $words[0] ne '';
+#if $words[0] eq '';
 
     @wrap = ();
     my ($line,$width,$abbrev);
@@ -402,9 +404,13 @@ sub format($@)
         if defined $line;
 
     if($this->{'_hindent'} && @wrap > 0) {
+        my $caller = (caller 1)[3];
+        $caller = ''
+            unless defined $caller;
         $this->{'_hindcurr'} = $this->{'_hindtext'}->[0]
-            if length($this->{'_hindcurr'}) < 1
-                && (caller 1)[3] ne 'Text::Format::paragraphs';
+            if defined $this->{'_hindtext'}->[0]
+                && length($this->{'_hindcurr'}) < 1
+                && $caller ne 'Text::Format::paragraphs';
         my ($fchar) = $wrap[0] =~ /(\S)/;
         my $white = index $wrap[0],$fchar;
         if($white  - $this->{'_lmargin'} - 1 > length($this->{'_hindcurr'})) {
@@ -426,7 +432,8 @@ sub format($@)
 sub paragraphs($@)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
     my @wrap = @_
         if @_ > 0;
 
@@ -450,13 +457,16 @@ sub paragraphs($@)
     for (@wrap) {
         $this->{'_hindcurr'} = $this->{'_hindtext'}->[$cnt]
             if $this->{'_hindent'};
+        $this->{'_hindcurr'} = ''
+            unless defined $this->{'_hindcurr'};
         $line = $this->format($_);
         push @ret,$line . $end
             if defined $line && length $line > 0;
         ++$cnt;
     }
     chop $ret[$#ret]
-        if $ret[$#ret] =~ /\n\n$/;
+        if defined($ret[$#ret]) && $ret[$#ret] =~ /\n\n$/;
+#if $ret[$#ret] =~ /\n\n$/;
 
     wantarray ? @ret
               : join '',@ret;
@@ -467,7 +477,8 @@ sub paragraphs($@)
 sub center($@)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
     my @center = @_
         if @_ > 0;
     @center =  @{$this->{'_text'}}
@@ -495,7 +506,8 @@ sub center($@)
 sub expand($@)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
     my @lines = @_
         if @_ > 0;
     @lines =  @{$this->{'_text'}}
@@ -514,7 +526,8 @@ sub expand($@)
 sub unexpand($@)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
     my @lines = $this->expand(@_);
 
     for (@lines) {
@@ -527,15 +540,24 @@ sub unexpand($@)
 
 # return a reference to the object, call as $text = Text::Format->new()
 # can be used to clone the current reference $ntext = $text->new()
-sub new($;$)
+sub new($@)
 {
     my $this = shift;
-    my $ref = shift;
-    my ($conf,%clone);
-    %clone = %{$this}
+    my $ref;
+    if(ref $_[0] eq 'HASH') {
+        $ref = shift;
+    }
+    elsif(scalar(@_) % 2 == 0) {
+        my %ref = @_;
+        $ref = \%ref;
+    }
+    else {
+        $ref = '';
+    }
+    my %clone = %{$this}
         if ref $this;
 
-    $conf = {
+    my $conf = {
         _cols          =>  72,
         _tabs          =>   8,
         _findent       =>   4,
@@ -600,12 +622,22 @@ sub new($;$)
 
 # configure all the attributes of the object
 # returns the old object prior to configuration
-sub config($$)
+sub config($@)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
-    my $conf = shift;
-    croak "Not a reference to a hash" unless ref $conf eq 'HASH';
+    croak "Bad method call"
+        unless ref $this;
+    my $conf;
+    if(ref $_[0] eq 'HASH') {
+        $conf = shift;
+    }
+    elsif(scalar(@_) % 2 == 0) {
+        my %conf = @_;
+        $conf = \%conf;
+    }
+    else {
+        croak "Bad hash ref";
+    }
     my %clone = %{$this};
 
     $this->{'_cols'} = abs int $conf->{'columns'}
@@ -651,7 +683,8 @@ sub config($$)
 sub columns($;$)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
 
     @_ ? $this->{'_cols'} = abs int shift
        : $this->{'_cols'};
@@ -660,7 +693,8 @@ sub columns($;$)
 sub tabstop($;$)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
 
     @_ ? $this->{'_tabs'} = abs int shift
        : $this->{'_tabs'};
@@ -669,7 +703,8 @@ sub tabstop($;$)
 sub firstIndent($;$)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
 
     @_ ? $this->{'_findent'} = abs int shift
        : $this->{'_findent'};
@@ -678,7 +713,8 @@ sub firstIndent($;$)
 sub bodyIndent($;$)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
 
     @_ ? $this->{'_bindent'} = abs int shift
        : $this->{'_bindent'};
@@ -687,7 +723,8 @@ sub bodyIndent($;$)
 sub rightFill($;$)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
 
     @_ ? $this->{'_fill'} = abs int shift
        : $this->{'_fill'};
@@ -696,7 +733,8 @@ sub rightFill($;$)
 sub rightAlign($;$)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
 
     @_ ? $this->{'_align'} = abs int shift
        : $this->{'_align'};
@@ -705,7 +743,8 @@ sub rightAlign($;$)
 sub justify($;$)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
 
     @_ ? $this->{'_justify'} = abs int shift
        : $this->{'_justify'};
@@ -714,7 +753,8 @@ sub justify($;$)
 sub leftMargin($;$)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
 
     @_ ? $this->{'_lmargin'} = abs int shift
        : $this->{'_lmargin'};
@@ -723,7 +763,8 @@ sub leftMargin($;$)
 sub rightMargin($;$)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
 
     @_ ? $this->{'_rmargin'} = abs int shift
        : $this->{'_rmargin'};
@@ -732,7 +773,8 @@ sub rightMargin($;$)
 sub extraSpace($;$)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
 
     @_ ? $this->{'_space'} = abs int shift
        : $this->{'_space'};
@@ -743,7 +785,8 @@ sub extraSpace($;$)
 sub abbrevs($@)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
 
     if(ref $_[0] eq 'HASH') {
         $this->{'_abbrs'} = shift;
@@ -761,7 +804,8 @@ sub abbrevs($@)
 sub text($;$)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
     my $text = shift;
 
     $this->{'_text'} = $text
@@ -774,7 +818,8 @@ sub text($;$)
 sub hangingIndent($;$)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
 
     @_ ? $this->{'_hindent'} = abs int shift
        : $this->{'_hindent'};
@@ -783,20 +828,22 @@ sub hangingIndent($;$)
 sub hangingText($;$)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
     my $text = shift;
 
     $this->{'_hindtext'} = $text
         if ref $text eq 'ARRAY';
 
-    wantarray ? @{$this->{'_hindtext'}}
+    wantarray ?  @{$this->{'_hindtext'}}
               : join ' ', @{$this->{'_hindtext'}};
 }
 
 sub noBreak($;$)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
 
     @_ ? $this->{'_nobreak'} = abs int shift
        : $this->{'_nobreak'};
@@ -805,7 +852,8 @@ sub noBreak($;$)
 sub noBreakRegex($;$)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
     my $nobreak = shift;
     
     $this->{'_nobreakregex'} = $nobreak
@@ -818,7 +866,8 @@ sub noBreakRegex($;$)
 sub __make_line($$$$$)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
     my ($line,$lead_white,$width,$not_last) = @_;
     my $fill = '';
     my $lmargin = ' ' x $this->{'_lmargin'};
@@ -855,7 +904,8 @@ sub __make_line($$$$$)
 sub __is_abbrev($$)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
     my $word = shift;
 
     $word =~ s/\.$//
@@ -873,7 +923,8 @@ sub __is_abbrev($$)
 sub __do_break($$$)
 {
     my $this = shift;
-    croak "Bad method call" unless ref $this;
+    croak "Bad method call"
+        unless ref $this;
     my ($line,$next_line) = @_;
     my $no_break = 0;
     my @words = split /\s+/,$line

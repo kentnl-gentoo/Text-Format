@@ -6,7 +6,7 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..5\n"; }
+BEGIN { $| = 1; print "1..1\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use Text::Format 0.43;
 $loaded = 1;
@@ -20,32 +20,15 @@ print "ok 1\n";
 
 $text = new Text::Format;
 @text = $text->paragraphs("hello world","cool");
-if(@text == 2) {
-    print "ok 2\n";
-}
+print "not ok 2\n" unless @text == 2;
 
 @text = $text->format("hello world","cool");
-if(@text == 1) {
-    print "ok 3\n";
-}
-else {
-    print "not ok 3\n";
-}
+print "not ok 3\n" unless @text == 1;
 
 @text = $text->center("hello world","cool");
-if(@text == 2) {
-    print "ok 4\n";
-}
-else {
-    print "not ok 3\n";
-}
+print "not ok 4\n" unless @text == 2;
 
 $text->columns(10);
 $text->bodyIndent(8);
 @text = $text->format("hello world","cool");
-if(@text == 3) {
-    print "ok 5\n";
-}
-else {
-    print "not ok 3\n";
-}
+print "not ok 5\n" unless @text == 3;

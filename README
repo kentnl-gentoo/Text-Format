@@ -1,4 +1,4 @@
-Text::Format VERSION 0.50
+Text::Format
 
 format()        Format text into a paragraph.  Text is first broken into
                 words and then joined back together to make up the
@@ -18,9 +18,10 @@ unexpand()      Turn spaces into tabs.  First calls expand() to expand
                 tabs into spaces and then turns tabstop number of spaces
                 into tabs, you can set tabstop size with tabstop().
 
-There are some incompatible changes compared to version 0.33.  Look at
-the Changes file to see what they are.
-There are also some new features.
+Text::NWrap
+
+wrap()          Simple interface to Text::Format->format(), acts similar
+                to Text::Wrap::wrap()
 
 To install :
 
