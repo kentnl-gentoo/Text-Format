@@ -18,11 +18,6 @@ unexpand()      Turn spaces into tabs.  First calls expand() to expand
                 tabs into spaces and then turns tabstop number of spaces
                 into tabs, you can set tabstop size with tabstop().
 
-Text::NWrap
-
-wrap()          Simple interface to Text::Format->format(), acts similar
-                to Text::Wrap::wrap()
-
 To install :
 
 perl Makefile.PL
