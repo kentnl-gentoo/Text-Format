@@ -1,5 +1,15 @@
 Revision history for Perl extension Text::Format.
 
+0.45 Wed Feb 18 00:04:01 1998
+    - changed the way hanging indents behave when there are more
+      paragraphs than indent tags, previously the first tag was reused,
+      now an empty text is used if there are no more tags available.
+    - added the justify feature, this will jsutify the text to both
+      margins, the rightAlign feture would jusstify to the rigght margin
+      and default is to justify to the left margin.  if rightAlign or
+      rightFill are set then justify is ignored.  rightFill fills the
+      right side with spaces
+
 0.44 Thu Feb 12 16:31:08 1998
     - added quotes to hash keys as 5.003 didn't like unquoted hash keys
       starting with an underscore

@@ -2,7 +2,7 @@ package Text::Format;
 
 =head1 NAME
 
-B<Text::Format> - Various subroutines to manipulate text.
+B<Text::Format> - Various subroutines to format text.
 
 =head1 SYNOPSIS
 
@@ -10,21 +10,22 @@ B<Text::Format> - Various subroutines to manipulate text.
 
     $text = Text::Format->new( 
         {
+            text           => [], # all
             columns        => 72, # format, paragraphs, center
-            tabstop        =>  8, # expand, unexpand, center
+            leftMargin     =>  0, # format, paragraphs, center
+            rightMargin    =>  0, # format, paragraphs, center
             firstIndent    =>  4, # format, paragraphs
             bodyIndent     =>  0, # format, paragraphs
             rightFill      =>  0, # format, paragraphs
             rightAlign     =>  0, # format, paragraphs
-            leftMargin     =>  0, # format, paragraphs, center
-            rightMargin    =>  0, # format, paragraphs, center
+            justify        =>  0, # format, paragraphs
             extraSpace     =>  0, # format, paragraphs
             abbrevs        => {}, # format, paragraphs
-            text           => [], # all
             hangingIndent  =>  0, # format, paragraphs
             hangingText    => [], # format, paragraphs
             noBreak        =>  0, # format, paragraphs
             noBreakRegex   => {}, # format, paragraphs
+            tabstop        =>  8, # expand, unexpand, center
         }
     ); # these are the default values
 
@@ -47,15 +48,18 @@ B<Text::Format> - Various subroutines to manipulate text.
 =head1 DESCRIPTION
 
 The B<format> routine will format under all circumstances even if the
-width isn't enough to contain the longest words.  Text::Wrap will die
+width isn't enough to contain the longest words.  B<Text::Wrap> will die
 under these circumstances, although I am told this is fixed.  If columns
 is set to a small number and words are longer than that and the leading
 'whitespace' than there will be a single word on each line.  This will
 let you make a simple word list which could be indented or right
 aligned.  There is a chance for croaking if you try to subvert the
-module.
+module.  If you don't pass in text then the internal text is worked on,
+though not modfied.
 B<Text::Format> is meant for more powerful text formatting than
-B<Text::Wrap> allows.
+B<Text::Wrap> allows.  I also have a module called B<Text::NWrap> that
+is meant as a direct replacement for B<Text::Wrap>.  B<Text::NWrap>
+requires B<Text::Format>
 
 General setup should be explained with the below graph.
 
@@ -75,7 +79,8 @@ Allows to do basic formatting of text into a paragraph, with indent for
 first line and body set separately.  Can specify width of total text,
 right fill with spaces and right align, right margin and left margin.
 Strips all leading and trailing whitespace before proceeding.  Text is
-first split into words and then reassembled.
+first split into words and then reassembled.  If no text is passed in
+then the internal text in the object is formatted.
 
 =item B<paragraphs> @ARRAY || \@ARRAY || [<FILEHANDLE>] || NOTHING
 
@@ -83,26 +88,30 @@ Considers each element of text as a paragraph and if the indents are the
 same for first line and the body then the paragraphs are separated by a
 single empty line otherwise they follow one under the other.  If hanging
 indent is set then a single empty line will separate each paragraph as
-well.  Calls B<format> to do the actual formatting.
+well.  Calls B<format> to do the actual formatting.  If no text is
+passed in then the internal text in the object is formatted.
 
 =item B<center> @ARRAY || NOTHING
 
 Centers a list of strings in @ARRAY or internal text.  Empty lines
 appear as, you guessed it, empty lines.  Center strips all leading and
 trailing whitespace before proceeding.  Left margin and right margin can
-be set.
+be set.  If no text is passed in then the internal text in the object is
+formatted.
 
 =item B<expand> @ARRAY || NOTHING
 
 Expand tabs in the list of text to tabstop number of spaces in @ARRAY or
 internal text.  Doesn't modify the internal text just passes back the
-modified text.
+modified text.  If no text is passed in then the internal text in the
+object is formatted.
 
 =item B<unexpand> @ARRAY || NOTHING
 
 Tabstop number of spaces are turned into tabs in @ARRAY or internal
 text.  Doesn't modify the internal text just passes back the modified
-text.
+text.  If no text is passed in then the internal text in the object is
+formatted.
 
 =item B<new> \%HASH || NOTHING
 
@@ -127,27 +136,39 @@ unexpand and center.
 
 =item B<firstIndent> NUMBER || NOTHING
 
-Set or get indent for the first line of paragraph.
+Set or get indent for the first line of paragraph.  This is the number
+of spaces to indent.
 
 =item B<bodyIndent> NUMBER || NOTHING
 
-Set or get indent for the body of paragraph.
+Set or get indent for the body of paragraph.  This is the number of
+spaces to indent.
 
 =item B<leftMargin> NUMBER || NOTHING
 
-Set or get width of left margin.
+Set or get width of left margin.  This is the number of spaces used for
+the margin.
 
 =item B<rightMargin> NUMBER || NOTHING
 
-Set or get width of right margin.
+Set or get width of right margin.  This is the number of spaces used for
+the margin.
 
 =item B<rightFill> 0 || 1 || NOTHING
 
-Set right fill to true or retrieve its value.
+Set right fill to true or retrieve its value.  The filling is done with
+spaces.
 
 =item B<rightAlign> 0 || 1 || NOTHING
 
-Set right align to true or retrieve its value.
+Set right align to true or retrieve its value.  Text is aligned with the
+right side of the margin.
+
+=item B<justify> 0 || 1 || NOTHING
+
+Set justify to true or retrieve its value.  Text is aligned with both
+margins, adding extra spaces as necessary to align text with left and
+right margins.
 
 =item B<text> \@ARRAY || NOTHING
 
@@ -162,10 +183,11 @@ attribute.
 =item B<hangingText> \@ARRAY || NOTHING
 
 The text that will be displayed in front of each paragraph, if you call
-B<format> than only the first element is used, if you call B<paragraphs>
+B<format> then only the first element is used, if you call B<paragraphs>
 then B<paragraphs> cycles through all of them.  If you have more
-paragraphs than elements in your array than the first one will get
-reused.  Pass a reference to your array.
+paragraphs than elements in your array than the remainder of the
+paragraphs will not have a hanging indented text.  Pass a reference to
+your array.
 
 =item B<noBreak> 0 || 1 || NOTHING
 
@@ -188,6 +210,7 @@ current end of sentence, then a backtrack is done till there are two
 words on which breaking is allowed.  If no two such words are found then
 the end of sentence is broken anyhow.  If there is a single word on
 current line then no backtrack is done and the word is stuck on the end.
+This is so you can make a list of names for example.
 
 =item B<extraSpace> 0 || 1 || NOTHING
 
@@ -270,6 +293,11 @@ B<Byron Brummer>
 suggestion for better interface design and object design, code for
 better implementation of getting abbreviations
 
+B<H. Merijn Brand>
+suggestion for justify feature and original code for doing the
+justification.  I changed the code to take into account the extra space
+at end of sentence feature.
+
 =head1 TODO
 
 =cut
@@ -278,22 +306,21 @@ use Carp;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '0.44';
-
-my (%abbrev);
+$VERSION = '0.45';
 
 # local abbreviations, you can add your own with add_abbrevs()
-%abbrev = (Mr  => 1,
-           Mrs => 1,
-           Ms  => 1,
-           Jr  => 1,
-           Sr  => 1,
+my %abbrev = (
+        Mr  => 1,
+        Mrs => 1,
+        Ms  => 1,
+        Jr  => 1,
+        Sr  => 1,
 );
 
-# Formats text into a nice paragraph format.  Can set a variety of
+# formats text into a nice paragraph format.  can set a variety of
 # attributes such as first line indent body indent left and right
-# margin, right align, right fill with spaces
-sub format(\$@)
+# margin, right align, right fill with spaces, non-breaking spaces
+sub format($@)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
@@ -320,7 +347,7 @@ sub format(\$@)
     $line = shift @words;
     $abbrev = $this->__is_abbrev($line)
         if defined $line;
-    local ($^W) = 0; # I need some variables to be undefined on occasion :-)
+    local $^W = 0; # I need some variables to be undefined on occasion :-)
     while ($_ = shift @words) {
         if(length($_) + length($line) < $width - 1
                 || ($line !~ /[.?!]['"]?$/ || $abbrev)
@@ -329,12 +356,14 @@ sub format(\$@)
                 if $line =~ /[.?!]['"]?$/ && ! $abbrev;
             $line .= ' ' . $_;
         }
-        else { last; }
+        else {
+            last;
+        }
         $abbrev = $this->__is_abbrev($_);
     }
     ($line,$_) = $this->__do_break($line,$_)
         if $this->{'_nobreak'} && defined $line;
-    push @wrap,$this->__make_line($line,$findent,$width)
+    push @wrap,$this->__make_line($line,$findent,$width,@words > 0)
         if defined $line;
     $_ = shift @words
         unless defined $_;
@@ -344,7 +373,7 @@ sub format(\$@)
     $abbrev = 0;
     $abbrev = $this->__is_abbrev($line)
         if defined $line;
-    for (@words) {
+    while ($_ = shift @words) {
         if(length($_) + length($line) < $width - 1
                 || ($line !~ /[.?!]['"]?$/ || $abbrev)
                 && length($_) + length($line) < $width) {
@@ -355,18 +384,19 @@ sub format(\$@)
         else {
             ($line,$_) = $this->__do_break($line,$_)
                 if $this->{'_nobreak'};
-            push @wrap,$this->__make_line($line,$bindent,$width)
+            push @wrap,$this->__make_line($line,$bindent,$width,@words > 0)
                 if defined $line;
             $line = $_;
         }
         $abbrev = $this->__is_abbrev($_);
     }
-    push @wrap,$this->__make_line($line,$bindent,$width)
+    push @wrap,$this->__make_line($line,$bindent,$width,@words > 0)
         if defined $line;
 
     if($this->{'_hindent'} && @wrap > 0) {
         $this->{'_hindcurr'} = $this->{'_hindtext'}->[0]
-            if length($this->{'_hindcurr'}) < 1;
+            if length($this->{'_hindcurr'}) < 1
+                && (caller 1)[3] ne 'Text::Format::paragraphs';
         my ($fchar) = $wrap[0] =~ /(\S)/;
         my $white = index $wrap[0],$fchar;
         if($white  - $this->{'_lmargin'} - 1 > length($this->{'_hindcurr'})) {
@@ -379,12 +409,13 @@ sub format(\$@)
         }
     }
 
-    wantarray ? @wrap : join '', @wrap;
+    wantarray ? @wrap
+              : join '', @wrap;
 }
 
 # format lines in text into paragraphs with each element of @wrap a
-# paragraph uses Text::Format->format for the formatting
-sub paragraphs(\$@)
+# paragraph; uses Text::Format->format for the formatting
+sub paragraphs($@)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
@@ -399,9 +430,13 @@ sub paragraphs(\$@)
     my (@ret,$end,$cnt,$line);
 
     # if indents are same, use newline between paragraphs
-    if($this->{'_findent'} eq $this->{'_bindent'} ||
-            $this->{'_hindent'}) { $end = "\n"; }
-    else { $end = ''; }
+    if($this->{'_findent'} == $this->{'_bindent'} ||
+            $this->{'_hindent'}) {
+        $end = "\n";
+    }
+    else {
+        $end = '';
+    }
 
     for (@wrap) {
         $this->{'_hindcurr'} = $this->{'_hindtext'}->[$cnt]
@@ -414,12 +449,13 @@ sub paragraphs(\$@)
     chop $ret[$#ret]
         if $ret[$#ret] =~ /\n\n$/;
 
-    wantarray ? @ret : join '',@ret;
+    wantarray ? @ret
+              : join '',@ret;
 }
 
 # center text using spaces on left side to pad it out
 # empty lines are preserved
-sub center(\$@)
+sub center($@)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
@@ -427,14 +463,13 @@ sub center(\$@)
         if @_ > 0;
     @center =  @{$this->{'_text'}}
         if @center < 1;
-    my $tabs;
+    my ($tabs);
     my $width = $this->{'_cols'} - $this->{'_lmargin'} - $this->{'_rmargin'};
 
     for (@center) {
         s/(?:^\s+|\s+$)|\n//g;
         $tabs = tr/\t//; # count tabs
-        substr($_,0,0) =
-                ' ' x int(($width - length($_)
+        substr($_,0,0) = ' ' x int(($width - length($_)
                 - $tabs * $this->{'_tabs'} + $tabs) / 2)
             if length > 0;
         substr($_,0,0) = ' ' x $this->{'_lmargin'}
@@ -442,12 +477,13 @@ sub center(\$@)
         substr($_,length) = "\n";
     }
 
-    wantarray ? @center : join '',@center;
+    wantarray ? @center
+              : join '',@center;
 }
 
 # expand tabs to spaces
 # should be similar to Text::Tabs::expand
-sub expand(\$@)
+sub expand($@)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
@@ -460,12 +496,13 @@ sub expand(\$@)
         s/\t/' ' x $this->{'_tabs'}/eg;
     }
 
-    wantarray ? @lines : $lines[0];
+    wantarray ? @lines
+              : $lines[0];
 }
 
 # turn tabstop number of spaces into tabs
 # should be similar to Text::Tabs::unexpand
-sub unexpand(\$@)
+sub unexpand($@)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
@@ -475,12 +512,13 @@ sub unexpand(\$@)
         s/ {$this->{'_tabs'}}/\t/g;
     }
 
-    wantarray ? @lines : $lines[0];
+    wantarray ? @lines
+              : $lines[0];
 }
 
 # return a reference to the object, call as $text = Text::Format->new()
 # can be used to clone the current reference $ntext = $text->new()
-sub new(\$;$)
+sub new($;$)
 {
     my $this = shift;
     my $ref = shift;
@@ -495,6 +533,7 @@ sub new(\$;$)
             _bindent      =>  0,
             _fill         =>  0,
             _align        =>  0,
+            _justify      =>  0,
             _lmargin      =>  0,
             _rmargin      =>  0,
             _space        =>  0,
@@ -520,6 +559,8 @@ sub new(\$;$)
             if defined $ref->{'rightFill'};
         $conf->{'_align'} = abs int $ref->{'rightAlign'}
             if defined $ref->{'rightAlign'};
+        $conf->{'_justify'} = abs int $ref->{'justify'}
+            if defined $ref->{'justify'};
         $conf->{'_lmargin'} = abs int $ref->{'leftMargin'}
             if defined $ref->{'leftMargin'};
         $conf->{'_rmargin'} = abs int $ref->{'rightMargin'}
@@ -527,25 +568,30 @@ sub new(\$;$)
         $conf->{'_space'} = abs int $ref->{'extraSpace'}
             if defined $ref->{'extraSpace'};
         $conf->{'_abbrs'} = $ref->{'abbrevs'}
-            if defined $ref->{'abbrevs'} && ref $ref->{'abbrevs'} eq 'HASH';
+            if defined $ref->{'abbrevs'}
+                && ref $ref->{'abbrevs'} eq 'HASH';
         $conf->{'_text'} = $ref->{'text'}
-            if defined $ref->{'text'} && ref $ref->{'text'} eq 'ARRAY';
+            if defined $ref->{'text'}
+                && ref $ref->{'text'} eq 'ARRAY';
         $conf->{'_hindent'} = abs int $ref->{'hangingIndent'}
             if defined $ref->{'hangingIndent'};
         $conf->{'_hindtext'} = $ref->{'hangingText'}
-            if defined $ref->{'hangingText'} && ref $ref->{'hangingText'} eq 'ARRAY';
+            if defined $ref->{'hangingText'}
+                && ref $ref->{'hangingText'} eq 'ARRAY';
         $conf->{'_nobreak'} = abs int$ref->{'noBreak'}
             if defined $ref->{'noBreak'};
         $conf->{'_nobreakregex'} = $ref->{'noBreakRegex'}
-            if defined $ref->{'noBreakRegex'} && ref $ref->{'noBreakRegex'} eq 'HASH';
+            if defined $ref->{'noBreakRegex'}
+                && ref $ref->{'noBreakRegex'} eq 'HASH';
     }
 
-    ref $this ? bless \%clone, ref $this : bless $conf, $this;
+    ref $this ? bless \%clone, ref $this
+              : bless $conf, $this;
 }
 
 # configure all the attributes of the object
 # returns the old object prior to configuration
-sub config(\$$)
+sub config($$)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
@@ -565,6 +611,8 @@ sub config(\$$)
         if defined $conf->{'rightFill'};
     $this->{'_align'} = abs int $conf->{'rightAlign'}
         if defined $conf->{'rightAlign'};
+    $this->{'_justify'} = abs int $conf->{'justify'}
+        if defined $conf->{'justify'};
     $this->{'_lmargin'} = abs int $conf->{'leftMargin'}
         if defined $conf->{'leftMargin'};
     $this->{'_rmargin'} = abs int $conf->{'rightMargin'}
@@ -572,99 +620,118 @@ sub config(\$$)
     $this->{'_space'} = abs int $conf->{'extraSpace'}
         if defined $conf->{'extraSpace'};
     $this->{'_abbrs'} = $conf->{'abbrevs'}
-        if defined $conf->{'abbrevs'} && ref $conf->{'abbrevs'} eq 'HASH';
+        if defined $conf->{'abbrevs'}
+            && ref $conf->{'abbrevs'} eq 'HASH';
     $this->{'_text'} = $conf->{'text'}
-        if defined $conf->{'text'} && ref $conf->{'text'} eq 'ARRAY';
+        if defined $conf->{'text'}
+            && ref $conf->{'text'} eq 'ARRAY';
     $this->{'_hindent'} = abs int $conf->{'hangingIndent'}
         if defined $conf->{'hangingIndent'};
     $this->{'_hindtext'} = $conf->{'hangingText'}
-        if defined $conf->{'hangingText'} && ref $conf->{'hangingText'} eq 'ARRAY';
+        if defined $conf->{'hangingText'}
+            && ref $conf->{'hangingText'} eq 'ARRAY';
     $this->{'_nobreak'} = abs int $conf->{'noBreak'}
         if defined $conf->{'noBreak'};
     $this->{'_nobreakregex'} = $conf->{'noBreakRegex'}
-        if defined $conf->{'noBreakRegex'} && ref $conf->{'noBreakRegex'} eq 'HASH';
+        if defined $conf->{'noBreakRegex'}
+            && ref $conf->{'noBreakRegex'} eq 'HASH';
 
     bless \%clone, ref $this;
 }
 
-# set or get the column size, width of text
-sub columns(\$;$)
+sub justify($;$)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
 
-    @_ ? $this->{'_cols'} = abs int shift : $this->{'_cols'};
+    @_ ? $this->{'_justify'} = abs int shift
+       : $this->{'_justify'};
 }
 
-# set or get the tabstop size
-sub tabstop(\$;$)
+sub columns($;$)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
 
-    @_ ? $this->{'_tabs'} = abs int shift : $this->{'_tabs'};
+    @_ ? $this->{'_cols'} = abs int shift
+       : $this->{'_cols'};
 }
 
-sub firstIndent(\$;$)
+sub tabstop($;$)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
 
-    @_ ? $this->{'_findent'} = abs int shift : $this->{'_findent'};
+    @_ ? $this->{'_tabs'} = abs int shift
+       : $this->{'_tabs'};
 }
 
-sub bodyIndent(\$;$)
+sub firstIndent($;$)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
 
-    @_ ? $this->{'_bindent'} = abs int shift : $this->{'_bindent'};
+    @_ ? $this->{'_findent'} = abs int shift
+       : $this->{'_findent'};
 }
 
-sub rightFill(\$;$)
+sub bodyIndent($;$)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
 
-    @_ ? $this->{'_fill'} = abs int shift : $this->{'_fill'};
+    @_ ? $this->{'_bindent'} = abs int shift
+       : $this->{'_bindent'};
 }
 
-sub rightAlign(\$;$)
+sub rightFill($;$)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
 
-    @_ ? $this->{'_align'} = abs int shift : $this->{'_align'};
+    @_ ? $this->{'_fill'} = abs int shift
+       : $this->{'_fill'};
 }
 
-sub leftMargin(\$;$)
+sub rightAlign($;$)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
 
-    @_ ? $this->{'_lmargin'} = abs int shift : $this->{'_lmargin'};
+    @_ ? $this->{'_align'} = abs int shift
+       : $this->{'_align'};
 }
 
-sub rightMargin(\$;$)
+sub leftMargin($;$)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
 
-    @_ ? $this->{'_rmargin'} = abs int shift : $this->{'_rmargin'};
+    @_ ? $this->{'_lmargin'} = abs int shift
+       : $this->{'_lmargin'};
 }
 
-# set or get whether to put extra space after a sentence
-sub extraSpace(\$;$)
+sub rightMargin($;$)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
 
-    @_ ? $this->{'_space'} = abs int shift : $this->{'_space'};
+    @_ ? $this->{'_rmargin'} = abs int shift
+       : $this->{'_rmargin'};
+}
+
+sub extraSpace($;$)
+{
+    my $this = shift;
+    croak "Bad method call" unless ref $this;
+
+    @_ ? $this->{'_space'} = abs int shift
+       : $this->{'_space'};
 }
 
 # takes a reference to your hash or takes a list of abbreviations,
 # returns the INTERNAL abbreviations
-sub abbrevs(\$@)
+sub abbrevs($@)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
@@ -674,14 +741,15 @@ sub abbrevs(\$@)
     }
     elsif(@_ > 0) {
         my %tmp;
-        @{tmp{@_}} = @_;
+        @tmp{@_} = @_;
         $this->{'_abbrs'} = \%tmp;
     }
 
-    wantarray ? sort keys %abbrev : join ' ',sort keys %abbrev;
+    wantarray ? sort keys %abbrev
+              : join ' ',sort keys %abbrev;
 }
 
-sub text(\$;$)
+sub text($;$)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
@@ -690,18 +758,20 @@ sub text(\$;$)
     $this->{'_text'} = $text
         if ref $text eq 'ARRAY';
 
-    wantarray ? @{$this->{'_text'}} : join ' ', @{$this->{'_text'}};
+    wantarray ? @{$this->{'_text'}}
+              : join ' ', @{$this->{'_text'}};
 }
 
-sub hangingIndent(\$;$)
+sub hangingIndent($;$)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
 
-    @_ ? $this->{'_hindent'} = abs int shift : $this->{'_hindent'};
+    @_ ? $this->{'_hindent'} = abs int shift
+       : $this->{'_hindent'};
 }
 
-sub hangingText(\$;$)
+sub hangingText($;$)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
@@ -710,18 +780,20 @@ sub hangingText(\$;$)
     $this->{'_hindtext'} = $text
         if ref $text eq 'ARRAY';
 
-    wantarray ? @{$this->{'_hindtext'}} : join ' ', @{$this->{'_hindtext'}};
+    wantarray ? @{$this->{'_hindtext'}}
+              : join ' ', @{$this->{'_hindtext'}};
 }
 
-sub noBreak(\$;$)
+sub noBreak($;$)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
 
-    @_ ? $this->{'_nobreak'} = abs int shift : $this->{'_nobreak'};
+    @_ ? $this->{'_nobreak'} = abs int shift
+       : $this->{'_nobreak'};
 }
 
-sub noBreakRegex(\$;$)
+sub noBreakRegex($;$)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
@@ -733,16 +805,32 @@ sub noBreakRegex(\$;$)
     %{$this->{'_nobreakregex'}};
 }
 
-sub __make_line(\$$$$)
+# internal routine, should not be called by an external routine
+sub __make_line($$$$$)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
-    my ($line,$lead_white,$width) = @_;
+    my ($line,$lead_white,$width,$not_last) = @_;
     my $fill = '';
     my $lmargin = ' ' x $this->{'_lmargin'};
 
     $fill = ' ' x ($width - length($line))
         if $this->{'_fill'} && ! $this->{'_align'};
+    if($this->{'_justify'} && ! ($this->{'_fill'} || $this->{'_align'})
+            && defined $line && $line =~ /\S+\s+\S+/ && $not_last) {
+        my $spaces = $width - length($line);
+        my @words = split /(\s+)/,$line;
+        LOOP: for (@words) {
+            last LOOP
+                if $spaces <= 0;
+            if(s/(\s+)/$1 /) {
+                --$spaces
+            }
+        }
+        redo LOOP
+            if $spaces > 0;
+        $line = join '',@words;
+    }
     $line = $lmargin . $lead_white . $line . $fill . "\n"
         if defined $line;
     substr($line,0,0) = ' ' x ($this->{'_cols'}
@@ -752,7 +840,8 @@ sub __make_line(\$$$$)
     $line;
 }
 
-sub __is_abbrev(\$$)
+# internal routine, should not be called by an external routine
+sub __is_abbrev($$)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
@@ -763,13 +852,14 @@ sub __is_abbrev(\$$)
     # if we have an abbreviation OR no space is wanted after sentence
     # endings
     return 1
-        if ! $this->{'_space'} ||
-            exists($abbrev{$word}) || exists(${$this->{'_abbrs'}}{$word});
+        if ! $this->{'_space'}
+            || exists($abbrev{$word}) || exists(${$this->{'_abbrs'}}{$word});
 
     0;
 }
 
-sub __do_break(\$$$)
+# internal routine, should not be called by an external routine
+sub __do_break($$$)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
@@ -784,6 +874,7 @@ sub __do_break(\$$$)
             if $last_word =~ m$_
                 && $next_line =~ m${$this->{'_nobreakregex'}}{$_};
     }
+
     if($no_break) {
         if(@words > 1) {
             my $i;
@@ -792,7 +883,8 @@ sub __do_break(\$$$)
                 for (keys %{$this->{'_nobreakregex'}}) {
                     $no_break = 1
                         if $words[$i - 1] =~ m$_
-                            && $words[$i] =~ m${$this->{'_nobreakregex'}}{$_};
+                            && $words[$i] =~
+                                m${$this->{'_nobreakregex'}}{$_};
                 }
                 last
                     if ! $no_break;
