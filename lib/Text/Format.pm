@@ -827,7 +827,7 @@ sub __make_line($$$$$)
                 --$spaces
             }
         }
-        redo LOOP
+        goto LOOP
             if $spaces > 0;
         $line = join '',@words;
     }
