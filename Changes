@@ -92,11 +92,3 @@ Revision history for Perl extension Text::Format.
       basically the same as Text::Wrap at this point just without the
       chance for dying, it's just a basic module - Andreas Koenig
       suggested to make it object oriented
-
-Revision history for Perl extension Text::NWrap.
-
-0.11 Sat Feb  7 14:55:39 1998
-    - silly bug fix, bug crept in at last moment after testing
-
-0.10 Fri Feb  6 18:37:13 1998
-    - added the module Text::NWrap which is meant to replace Text::Wrap.
