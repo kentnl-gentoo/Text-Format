@@ -1,5 +1,7 @@
 Changes
 lib/Text/Format.pm
-t/test.t
+lib/Text/NWrap.pm
+t/format.t
+t/justify.t
 MANIFEST
 Makefile.PL

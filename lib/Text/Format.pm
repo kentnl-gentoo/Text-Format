@@ -1,4 +1,5 @@
 package Text::Format;
+require 5.003;
 
 =head1 NAME
 
