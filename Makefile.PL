@@ -3,5 +3,5 @@ use ExtUtils::MakeMaker;
 # the contents of the Makefile that is written.
 WriteMakefile(
     'NAME'	=> 'Text::Format',
-    'VERSION' => '0.42',
+    'VERSION' => '0.43',
 );

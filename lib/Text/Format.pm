@@ -278,7 +278,7 @@ use Carp;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '0.41';
+$VERSION = '0.43';
 
 my (%abbrev);
 
@@ -343,6 +343,7 @@ sub format(\$@)
     $abbrev = 0;
     $abbrev = $this->__is_abbrev($line)
         if defined $line;
+    local ($^W) = 0; # Perl is complaining for some unexplicable reasons
     for (@words) {
         if(length($_) + length($line) < $width - 1
                 || ($line !~ /[.?!]['"]?$/ || $abbrev)
@@ -757,7 +758,8 @@ sub __is_abbrev($$)
     croak "Bad method call" unless ref $this;
     my $word = shift;
 
-    $word =~ s/\.$//; # remove period if there is one
+    $word =~ s/\.$//
+        if defined $word; # remove period if there is one
     # if we have an abbreviation OR no space is wanted after sentence
     # endings
     return 1
@@ -773,9 +775,11 @@ sub __do_break($$$)
     croak "Bad method call" unless ref $this;
     my ($line,$next_line) = @_;
     my $no_break = 0;
-    my @words = split /\s+/,$line;
+    my @words = split /\s+/,$line
+        if defined $line;
     my $last_word = $words[$#words];
 
+    local ($^W) = 0; # Perl is complaining for some unexplicable reasons
     for (keys %{$this->{_nobreakregex}}) {
         $no_break = 1
             if $last_word =~ m$_

@@ -62,19 +62,20 @@ use vars qw(@EXPORT_OK @ISA $VERSION $columns);
 BEGIN {
     $columns = 72;
 }
-$VERSION = '0.10';
+$VERSION = '0.11';
 
 sub wrap($$@)
 {
     my ($findent,$bindent,@text) = @_;
 
     return ''
-        if @_ < 1;
+        if @text < 1;
 
-    my $text = Text::Format->new({columns => $columns,
+    my $text = Text::Format->new({columns => $columns});
+    $text->config( {
             firstIndent => length $text->expand($findent),
-            bodyIndent  => length $text->expand($bindent)}
-    );
+            bodyIndent  => length $text->expand($bindent)
+    } );
 
     my @ret = $text->format(@text);
     $ret[0] =~ s/^ +/$findent/;
