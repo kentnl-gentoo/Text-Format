@@ -157,18 +157,21 @@ the margin.
 =item B<rightFill> 0 || 1 || NOTHING
 
 Set right fill to true or retrieve its value.  The filling is done with
-spaces.
+spaces.  Keep in mind that if rightAlign is also set then both rightFill
+and rightAlign are ignored.
 
 =item B<rightAlign> 0 || 1 || NOTHING
 
 Set right align to true or retrieve its value.  Text is aligned with the
-right side of the margin.
+right side of the margin.  Keep in mind that if rightFill is also set
+then both rightFill and rightAlign are ignored.
 
 =item B<justify> 0 || 1 || NOTHING
 
 Set justify to true or retrieve its value.  Text is aligned with both
 margins, adding extra spaces as necessary to align text with left and
-right margins.
+right margins.  Keep in mind that if either of rightAlign or rightFill
+are set then justify is ignored.
 
 =item B<text> \@ARRAY || NOTHING
 
@@ -306,7 +309,7 @@ use Carp;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '0.45';
+$VERSION = '0.46';
 
 # local abbreviations, you can add your own with add_abbrevs()
 my %abbrev = (
@@ -347,7 +350,6 @@ sub format($@)
     $line = shift @words;
     $abbrev = $this->__is_abbrev($line)
         if defined $line;
-    local $^W = 0; # I need some variables to be undefined on occasion :-)
     while ($_ = shift @words) {
         if(length($_) + length($line) < $width - 1
                 || ($line !~ /[.?!]['"]?$/ || $abbrev)
@@ -363,10 +365,8 @@ sub format($@)
     }
     ($line,$_) = $this->__do_break($line,$_)
         if $this->{'_nobreak'} && defined $line;
-    push @wrap,$this->__make_line($line,$findent,$width,@words > 0)
+    push @wrap,$this->__make_line($line,$findent,$width,defined $_)
         if defined $line;
-    $_ = shift @words
-        unless defined $_;
     $line = $_;
     $width = $this->{'_cols'} - $this->{'_bindent'}
         - $this->{'_lmargin'} - $this->{'_rmargin'};
@@ -384,13 +384,13 @@ sub format($@)
         else {
             ($line,$_) = $this->__do_break($line,$_)
                 if $this->{'_nobreak'};
-            push @wrap,$this->__make_line($line,$bindent,$width,@words > 0)
+            push @wrap,$this->__make_line($line,$bindent,$width,defined $_)
                 if defined $line;
             $line = $_;
         }
         $abbrev = $this->__is_abbrev($_);
     }
-    push @wrap,$this->__make_line($line,$bindent,$width,@words > 0)
+    push @wrap,$this->__make_line($line,$bindent,$width,0)
         if defined $line;
 
     if($this->{'_hindent'} && @wrap > 0) {
@@ -438,6 +438,7 @@ sub paragraphs($@)
         $end = '';
     }
 
+    $cnt = 0;
     for (@wrap) {
         $this->{'_hindcurr'} = $this->{'_hindtext'}->[$cnt]
             if $this->{'_hindent'};
@@ -639,15 +640,6 @@ sub config($$)
     bless \%clone, ref $this;
 }
 
-sub justify($;$)
-{
-    my $this = shift;
-    croak "Bad method call" unless ref $this;
-
-    @_ ? $this->{'_justify'} = abs int shift
-       : $this->{'_justify'};
-}
-
 sub columns($;$)
 {
     my $this = shift;
@@ -700,6 +692,15 @@ sub rightAlign($;$)
 
     @_ ? $this->{'_align'} = abs int shift
        : $this->{'_align'};
+}
+
+sub justify($;$)
+{
+    my $this = shift;
+    croak "Bad method call" unless ref $this;
+
+    @_ ? $this->{'_justify'} = abs int shift
+       : $this->{'_justify'};
 }
 
 sub leftMargin($;$)
@@ -817,15 +818,16 @@ sub __make_line($$$$$)
     $fill = ' ' x ($width - length($line))
         if $this->{'_fill'} && ! $this->{'_align'};
     if($this->{'_justify'} && ! ($this->{'_fill'} || $this->{'_align'})
-            && defined $line && $line =~ /\S+\s+\S+/ && $not_last) {
+            && defined $line && $line =~ m/\S+\s+\S+/ && $not_last) {
         my $spaces = $width - length($line);
         my @words = split /(\s+)/,$line;
         LOOP: for (@words) {
+            next LOOP
+                if m/\S/;
             last LOOP
                 if $spaces <= 0;
-            if(s/(\s+)/$1 /) {
-                --$spaces
-            }
+            substr($_,0,0) = ' ';
+            --$spaces;
         }
         goto LOOP
             if $spaces > 0;
@@ -875,31 +877,25 @@ sub __do_break($$$)
                 && $next_line =~ m${$this->{'_nobreakregex'}}{$_};
     }
 
-    if($no_break) {
-        if(@words > 1) {
-            my $i;
-            for($i = $#words;$i > 0;--$i) {
-                $no_break = 0;
-                for (keys %{$this->{'_nobreakregex'}}) {
-                    $no_break = 1
-                        if $words[$i - 1] =~ m$_
-                            && $words[$i] =~
-                                m${$this->{'_nobreakregex'}}{$_};
-                }
-                last
-                    if ! $no_break;
+    if($no_break && @words > 1) {
+        my $i;
+        for($i = $#words;$i > 0;--$i) {
+            $no_break = 0;
+            for (keys %{$this->{'_nobreakregex'}}) {
+                $no_break = 1
+                    if $words[$i - 1] =~ m$_
+                        && $words[$i] =~
+                            m${$this->{'_nobreakregex'}}{$_};
             }
-            if($i > 0) { # found break point
-                $line =~ s/((?:\S+\s+){$i})(.+)/$1/;
-                $next_line = $2 . ' ' . $next_line;
-                $line =~ s/\s+$//;
-            }
-            # else, no breakpoint found and must break here anyways :->
+            last
+                if ! $no_break;
         }
-        else { # line had only one word on it
-            $line .= ' ' . $next_line;
-            $next_line = undef;
+        if($i > 0) { # found break point
+            $line =~ s/((?:\S+\s+){$i})(.+)/$1/;
+            $next_line = $2 . ' ' . $next_line;
+            $line =~ s/\s+$//;
         }
+        # else, no breakpoint found and must break here anyways :->
     }
     ($line,$next_line);
 }

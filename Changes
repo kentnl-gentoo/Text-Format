@@ -1,5 +1,10 @@
 Revision history for Perl extension Text::Format.
 
+0.46 Wed Feb 18 17:19:43 1998
+    - fixed bug in justify when there was only one word left for the
+      last line it would consider the previous line to be the last line
+      and not justify it. :-(
+
 0.45 Wed Feb 18 00:04:01 1998
     - changed the way hanging indents behave when there are more
       paragraphs than indent tags, previously the first tag was reused,
@@ -75,3 +80,11 @@ Revision history for Perl extension Text::Format.
       basically the same as Text::Wrap at this point just without the
       chance for dying, it's just a basic module - Andreas Koenig
       suggested to make it object oriented
+
+Revision history for Perl extension Text::NWrap.
+
+0.11 Sat Feb  7 14:55:39 1998
+    - silly bug fix, bug crept in at last moment after testing
+
+0.10 Fri Feb  6 18:37:13 1998
+    - added the module Text::NWrap which is meant to replace Text::Wrap.
