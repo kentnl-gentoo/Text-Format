@@ -1,0 +1,28 @@
+Revision history for Perl extension Text::Format.
+
+0.32  Sat Jan 17 11:45:48 1998
+    - fixed another bug
+
+0.31  Fri Jan 16 17:23:18 1998
+    - renamed module to Format.pm (was Manip.pm)
+      fixed a warning
+
+0.30  Wed Jan 14 22:20:37 1998
+    - added ability to do hanging indents, fixed the interface for a
+      better object oriented design, fixed some more bugs
+
+0.23  Fri Jan 10 22:56:40 1998
+    - few bug fixes
+
+0.22  Fri Jan 10 17:39:23 1998
+    - addition of expand/unexpand routines
+
+0.21  Thu Jan  9 20:23:34 1998
+    - addition of center routine
+
+0.20  Wed Jan  8 22:20:28 1998
+    - change to object oriented module
+
+0.10  Tue Jan  6 15:28:29 1998
+    - original version
+      routines are : wrap, fill
