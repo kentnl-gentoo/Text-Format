@@ -2,29 +2,31 @@ package Text::Format;
 
 =head1 NAME
 
-Text::Format - Various subroutines to manipulate text.
+B<Text::Format> - Various subroutines to manipulate text.
 
 =head1 SYNOPSIS
 
     use Text::Format;
 
-    $text = Text::Format->new( {
-        columns        => 72, # format, paragraphs, center
-        tabstop        =>  8, # expand, unexpand, center
-        firstIndent    =>  4, # format, paragraphs
-        bodyIndent     =>  0, # format, paragraphs
-        rightFill      =>  0, # format, paragraphs
-        rightAlign     =>  0, # format, paragraphs
-        leftMargin     =>  0, # format, paragraphs, center
-        rightMargin    =>  0, # format, paragraphs, center
-        extraSpace     =>  0, # format, paragraphs
-        abbrevs        => {}, # format, paragraphs
-        text           => [], # all
-        hangingIndent  =>  0, # format, paragraphs
-        hangingText    => [], # format, paragraphs
-        noBreak        =>  0, # format, paragraphs
-        noBreakRegex   => {}, # format, paragraphs
-    } ); # these are the default values
+    $text = Text::Format->new( 
+        {
+            columns        => 72, # format, paragraphs, center
+            tabstop        =>  8, # expand, unexpand, center
+            firstIndent    =>  4, # format, paragraphs
+            bodyIndent     =>  0, # format, paragraphs
+            rightFill      =>  0, # format, paragraphs
+            rightAlign     =>  0, # format, paragraphs
+            leftMargin     =>  0, # format, paragraphs, center
+            rightMargin    =>  0, # format, paragraphs, center
+            extraSpace     =>  0, # format, paragraphs
+            abbrevs        => {}, # format, paragraphs
+            text           => [], # all
+            hangingIndent  =>  0, # format, paragraphs
+            hangingText    => [], # format, paragraphs
+            noBreak        =>  0, # format, paragraphs
+            noBreakRegex   => {}, # format, paragraphs
+        }
+    ); # these are the default values
 
     %abbr = (foo => 1, bar => 1);
     $text->abbrevs(\%abbr);
@@ -46,31 +48,34 @@ Text::Format - Various subroutines to manipulate text.
 
 The B<format> routine will format under all circumstances even if the
 width isn't enough to contain the longest words.  Text::Wrap will die
-under these circumstances, although I am told this is fixed, which isn't
-quite desirable in my opinion.  If columns is set to a small number and
-words are longer than that and the leading 'whitespace' than there will
-be a single word on each line.  This will let you make a simple word
-list which could be indented or right aligned.  There is a chance for
-croaking if you try to subvert the module.
+under these circumstances, although I am told this is fixed.  If columns
+is set to a small number and words are longer than that and the leading
+'whitespace' than there will be a single word on each line.  This will
+let you make a simple word list which could be indented or right
+aligned.  There is a chance for croaking if you try to subvert the
+module.
+B<Text::Format> is meant for more powerful text formatting than
+B<Text::Wrap> allows.
 
 General setup should be explained with the below graph.
 
-                              columns
+                           columns
 <------------------------------------------------------------>
 <----------><------><---------------------------><----------->
  leftMargin  indent  text is formatted into here  rightMargin
 
-indent is firstIndent or bodyIndent
+indent is firstIndent or bodyIndent depending on where we are in the
+paragraph
 
 =over 4
 
 =item B<format> @ARRAY || \@ARRAY || [<FILEHANDLE>] || NOTHING
 
 Allows to do basic formatting of text into a paragraph, with indent for
-first line and body set separately.  Can specify tab size and columns,
-width of total text, right fill with spaces and right align, right
-margin and left margin.  Strips all leading and trailing whitespace
-before proceding.  Text is first split into words and then reassebled.
+first line and body set separately.  Can specify width of total text,
+right fill with spaces and right align, right margin and left margin.
+Strips all leading and trailing whitespace before proceeding.  Text is
+first split into words and then reassembled.
 
 =item B<paragraphs> @ARRAY || \@ARRAY || [<FILEHANDLE>] || NOTHING
 
@@ -84,7 +89,7 @@ well.  Calls B<format> to do the actual formatting.
 
 Centers a list of strings in @ARRAY or internal text.  Empty lines
 appear as, you guessed it, empty lines.  Center strips all leading and
-trailing whitespace before proceding.  Left margin and right margin can
+trailing whitespace before proceeding.  Left margin and right margin can
 be set.
 
 =item B<expand> @ARRAY || NOTHING
@@ -102,7 +107,7 @@ text.
 =item B<new> \%HASH || NOTHING
 
 Instantiates the object.  If you pass a reference to a hash, or an
-anonymous hash then it's used in setting atributes.
+anonymous hash then it's used in setting attributes.
 
 =item B<config> \%HASH
 
@@ -168,7 +173,7 @@ Set whether you want to use the non-breaking space feature.
 
 =item B<noBreakRegex> \%HASH || NOTHING
 
-Pass in a reference to your hash that would hold the rgexes on which not
+Pass in a reference to your hash that would hold the regexes on which not
 to break.  Returns the hash.
 eg.
 
@@ -193,9 +198,9 @@ abbreviations and you can add your own to the object with B<abbrevs>
 
 =item B<abbrevs> \%HASH || @ARRAY || NOTHING
 
-Add to the current abbreviations, takes a reference to your array, if
-called a second time the original reference is removed.  Returns the
-current INTERNAL abbreviations.
+Add to the current abbreviations, takes a reference to your hash or an
+array of abbreviations, if called a second time the original reference
+is removed.  Returns the current INTERNAL abbreviations.
 
 =back
 
@@ -220,6 +225,7 @@ current INTERNAL abbreviations.
     print $text->paragraphs(@text);
     print $text->center(@text);
     print $text->format([<FILEHANDLE>]);
+    print $text->format([$fh->getlines()]);
     print $text->paragraphs([<FILEHANDLE>]);
     print $text->expand(@text);
     print $text->unexpand(@text);
@@ -239,7 +245,7 @@ current INTERNAL abbreviations.
 Line length can exceed columns specified if columns is set to a small
 number and long words plus leading whitespace exceed column length
 specified.  Actually I see this as a feature since it can be used to
-make up a nice wordlist.
+make up a nice word list.
 
 =head1 AUTHOR
 
@@ -249,11 +255,11 @@ Copyright (c) 1998 Gabor Egressy.  All rights reserved.  All wrongs
 reversed.  This program is free software; you can redistribute and/or
 modify it under the same terms as Perl itself.
 
-=head1 ACKNOWLEDGEMENTS
+=head1 ACKNOWLEDGMENTS
 
 B<Tom Phoenix>
 found bug with code for two spaces at end of sentence and provided code
-fragment for a better solution, some preliminay suggestions on design
+fragment for a better solution, some preliminary suggestions on design
 
 B<Brad Appleton>
 suggesting and explanation of hanging indents, suggestion for
@@ -274,14 +280,14 @@ use vars qw($VERSION);
 
 $VERSION = '0.41';
 
-my ($make_line,$is_abbrev,$do_break,%abbrev);
+my (%abbrev);
 
 # local abbreviations, you can add your own with add_abbrevs()
 %abbrev = (Mr  => 1,
            Mrs => 1,
            Ms  => 1,
-           Sr  => 1,
            Jr  => 1,
+           Sr  => 1,
 );
 
 # Formats text into a nice paragraph format.  Can set a variety of
@@ -312,10 +318,7 @@ sub format(\$@)
     $width = $this->{_cols} - $this->{_findent}
         - $this->{_lmargin} - $this->{_rmargin};
     $line = shift @words;
-    local (*is_abbrev) = $is_abbrev;
-    local (*make_line) = $make_line;
-    local (*do_break)  = $do_break;
-    $abbrev = $this->is_abbrev($line)
+    $abbrev = $this->__is_abbrev($line)
         if defined $line;
     while ($_ = shift @words) {
         if(length($_) + length($line) < $width - 1
@@ -326,11 +329,11 @@ sub format(\$@)
             $line .= ' ' . $_;
         }
         else { last; }
-        $abbrev = $this->is_abbrev($_);
+        $abbrev = $this->__is_abbrev($_);
     }
-    ($line,$_) = $this->do_break($line,$_)
+    ($line,$_) = $this->__do_break($line,$_)
         if $this->{_nobreak} && defined $line;
-    push @wrap,$this->make_line($line,$findent,$width)
+    push @wrap,$this->__make_line($line,$findent,$width)
         if defined $line;
     $_ = shift @words
         unless defined $_;
@@ -338,7 +341,7 @@ sub format(\$@)
     $width = $this->{_cols} - $this->{_bindent}
         - $this->{_lmargin} - $this->{_rmargin};
     $abbrev = 0;
-    $abbrev = $this->is_abbrev($line)
+    $abbrev = $this->__is_abbrev($line)
         if defined $line;
     for (@words) {
         if(length($_) + length($line) < $width - 1
@@ -349,15 +352,15 @@ sub format(\$@)
             $line .= ' ' . $_;
         }
         else {
-            ($line,$_) = $this->do_break($line,$_)
+            ($line,$_) = $this->__do_break($line,$_)
                 if $this->{_nobreak};
-            push @wrap,$this->make_line($line,$bindent,$width)
+            push @wrap,$this->__make_line($line,$bindent,$width)
                 if defined $line;
             $line = $_;
         }
-        $abbrev = $this->is_abbrev($_);
+        $abbrev = $this->__is_abbrev($_);
     }
-    push @wrap,$this->make_line($line,$bindent,$width)
+    push @wrap,$this->__make_line($line,$bindent,$width)
         if defined $line;
 
     if($this->{_hindent} && @wrap > 0) {
@@ -476,7 +479,7 @@ sub unexpand(\$@)
 
 # return a reference to the object, call as $text = Text::Format->new()
 # can be used to clone the current reference $ntext = $text->new()
-sub new()
+sub new(\$;$)
 {
     my $this = shift;
     my $ref = shift;
@@ -541,7 +544,7 @@ sub new()
 
 # configure all the attributes of the object
 # returns the old object prior to configuration
-sub config
+sub config(\$$)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
@@ -729,9 +732,10 @@ sub noBreakRegex(\$;$)
     %{$this->{_nobreakregex}};
 }
 
-$make_line = sub
+sub __make_line($$$$)
 {
     my $this = shift;
+    croak "Bad method call" unless ref $this;
     my ($line,$lead_white,$width) = @_;
     my $fill = '';
     my $lmargin = ' ' x $this->{_lmargin};
@@ -745,11 +749,12 @@ $make_line = sub
         if $this->{_align} && ! $this->{_fill} && defined $line;
 
     $line;
-};
+}
 
-$is_abbrev = sub
+sub __is_abbrev($$)
 {
     my $this = shift;
+    croak "Bad method call" unless ref $this;
     my $word = shift;
 
     $word =~ s/\.$//; # remove period if there is one
@@ -760,11 +765,12 @@ $is_abbrev = sub
             exists($abbrev{$word}) || exists(${$this->{_abbrs}}{$word});
 
     0;
-};
+}
 
-$do_break = sub
+sub __do_break($$$)
 {
     my $this = shift;
+    croak "Bad method call" unless ref $this;
     my ($line,$next_line) = @_;
     my $no_break = 0;
     my @words = split /\s+/,$line;
@@ -801,9 +807,6 @@ $do_break = sub
         }
     }
     ($line,$next_line);
-};
+}
 
 1;
-__END__
-            $line =~ s/(\S)\s+\S+$/$1/;
-            $next_line = $last_word . ' ' . $next_line;

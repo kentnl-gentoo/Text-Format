@@ -1,5 +1,13 @@
 Revision history for Perl extension Text::Format.
 
+0.42 Fri Feb  6 18:37:13 1998
+    - no real changes as far as the user is concerned
+    - changed some internal subroutines from being just a reference to
+      being a real subroutine so Objects that inherit from Text::Format
+      can use them
+    - added the module Text::NWrap which is meant to replace Text::Wrap.
+      This is version 0.1 of that module.
+
 0.41  Mon Feb  2 22:57:33 1998
     - fixed non-breaking space bug
     - added some more error checking to new() and config()
@@ -27,7 +35,7 @@ Revision history for Perl extension Text::Format.
 
 0.31  Fri Jan 16 17:23:18 1998
     - renamed module to Format.pm (was Manip.pm)
-      fixed a warning; was operating on an undeffed string without
+      fixed a warning; was operating on an undef'ed string without
       checking now check for defined strings
 
 0.30  Wed Jan 14 22:20:37 1998
