@@ -172,10 +172,17 @@ Pass in a reference to your hash that would hold the rgexes on which not
 to break.  Returns the hash.
 eg.
 
-{'Mrs?\.' => '^\S+$'}
+    {'^Mrs?\.$' => '^\S+$','^\S+$' => '^(?:S|J)r\.$'}
 
 don't break names such as 
 Mr. Jones, Mrs. Jones
+Jones Jr.
+
+The breaking algorithm is simple.  If there should not be a break at the
+current end of sentence, then a backtrack is done till there are two
+words on which breaking is allowed.  If no two such words are found then
+the end of sentence is broken anyhow.  If there is a single word on
+current line then no backtrack is done and the word is stuck on the end.
 
 =item B<extraSpace> 0 || 1 || NOTHING
 
@@ -265,7 +272,7 @@ use Carp;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '0.40';
+$VERSION = '0.41';
 
 my ($make_line,$is_abbrev,$do_break,%abbrev);
 
@@ -344,7 +351,8 @@ sub format(\$@)
         else {
             ($line,$_) = $this->do_break($line,$_)
                 if $this->{_nobreak};
-            push @wrap,$this->make_line($line,$bindent,$width);
+            push @wrap,$this->make_line($line,$bindent,$width)
+                if defined $line;
             $line = $_;
         }
         $abbrev = $this->is_abbrev($_);
@@ -515,17 +523,17 @@ sub new()
         $conf->{_space} = abs int $ref->{extraSpace}
             if defined $ref->{extraSpace};
         $conf->{_abbrs} = $ref->{abbrevs}
-            if defined $ref->{abbrevs};
+            if defined $ref->{abbrevs} && ref $ref->{abbrevs} eq 'HASH';
         $conf->{_text} = $ref->{text}
-            if defined $ref->{text};
+            if defined $ref->{text} && ref $ref->{text} eq 'ARRAY';
         $conf->{_hindent} = abs int $ref->{hangingIndent}
             if defined $ref->{hangingIndent};
         $conf->{_hindtext} = $ref->{hangingText}
-            if defined $ref->{hangingText};
+            if defined $ref->{hangingText} && ref $ref->{hangingText} eq 'ARRAY';
         $conf->{_nobreak} = abs int$ref->{noBreak}
             if defined $ref->{noBreak};
         $conf->{_nobreakregex} = $ref->{noBreakRegex}
-            if defined $ref->{noBreakRegex};
+            if defined $ref->{noBreakRegex} && ref $ref->{noBreakRegex} eq 'HASH';
     }
 
     ref $this ? bless \%clone, ref $this : bless $conf, $this;
@@ -560,17 +568,17 @@ sub config
     $this->{_space} = abs int $conf->{extraSpace}
         if defined $conf->{extraSpace};
     $this->{_abbrs} = $conf->{abbrevs}
-        if defined $conf->{abbrevs};
+        if defined $conf->{abbrevs} && ref $conf->{abbrevs} eq 'HASH';
     $this->{_text} = $conf->{text}
-        if defined $conf->{text};
+        if defined $conf->{text} && ref $conf->{text} eq 'ARRAY';
     $this->{_hindent} = abs int $conf->{hangingIndent}
         if defined $conf->{hangingIndent};
     $this->{_hindtext} = $conf->{hangingText}
-        if defined $conf->{hangingText};
+        if defined $conf->{hangingText} && ref $conf->{hangingText} eq 'ARRAY';
     $this->{_nobreak} = abs int $conf->{noBreak}
         if defined $conf->{noBreak};
     $this->{_nobreakregex} = $conf->{noBreakRegex}
-        if defined $conf->{noBreakRegex};
+        if defined $conf->{noBreakRegex} && ref $conf->{noBreakRegex} eq 'HASH';
 
     bless \%clone, ref $this;
 }
@@ -758,8 +766,9 @@ $do_break = sub
 {
     my $this = shift;
     my ($line,$next_line) = @_;
-    my ($last_word) = $line =~ /(\S+)$/;
     my $no_break = 0;
+    my @words = split /\s+/,$line;
+    my $last_word = $words[$#words];
 
     for (keys %{$this->{_nobreakregex}}) {
         $no_break = 1
@@ -767,12 +776,26 @@ $do_break = sub
                 && $next_line =~ m${$this->{_nobreakregex}}{$_};
     }
     if($no_break) {
-        # if there is at least two words on a line
-        if($line =~ /\S+\s+\S+/) {
-            $line =~ s/(\S)\s+\S+$/$1/;
-            $next_line = $last_word . ' ' . $next_line;
+        if(@words > 1) {
+            my $i;
+            for($i = $#words;$i > 0;--$i) {
+                $no_break = 0;
+                for (keys %{$this->{_nobreakregex}}) {
+                    $no_break = 1
+                        if $words[$i - 1] =~ m$_
+                            && $words[$i] =~ m${$this->{_nobreakregex}}{$_};
+                }
+                last
+                    if ! $no_break;
+            }
+            if($i > 0) { # found break point
+                $line =~ s/((?:\S+\s+){$i})(.+)/$1/;
+                $next_line = $2 . ' ' . $next_line;
+                $line =~ s/\s+$//;
+            }
+            # else, no breakpoint found and must break here anyways :->
         }
-        else {
+        else { # line had only one word on it
             $line .= ' ' . $next_line;
             $next_line = undef;
         }
@@ -781,3 +804,6 @@ $do_break = sub
 };
 
 1;
+__END__
+            $line =~ s/(\S)\s+\S+$/$1/;
+            $next_line = $last_word . ' ' . $next_line;
