@@ -19,16 +19,16 @@ print "ok 1\n";
 # of the test code):
 
 $text = new Text::Format;
-@text = $text->fill("hello world","cool");
+@text = $text->paragraphs("hello world","cool");
 print "not ok 2\n" unless @text == 2;
 
-@text = $text->wrap("hello world","cool");
+@text = $text->format("hello world","cool");
 print "not ok 3\n" unless @text == 1;
 
 @text = $text->center("hello world","cool");
 print "not ok 4\n" unless @text == 2;
 
 $text->columns(10);
-$text->bodyIndent("\t");
-@text = $text->wrap("hello world","cool");
+$text->bodyIndent(8);
+@text = $text->format("hello world","cool");
 print "not ok 5\n" unless @text == 3;

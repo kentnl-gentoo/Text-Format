@@ -1,11 +1,30 @@
 Revision history for Perl extension Text::Format.
 
+0.40  Thu Jan 29 16:47:41 1998
+    - added support for non-breaking space
+    - made some changes that make the module incompatible with the
+      previous version
+      * firstIndent and bodyIndent now take a number as an argument and
+        spaces are used for the indents at all times rather than the
+        previously specified strings
+      * expandTabs is gone - to expand tabs prior to using center()
+        just use Text::Format->expand() first
+      * subroutines wrap and fill renamed to format() and paragraphs()
+        to reflect their usage
+    - fixed the bug due to the right margin not being considered when
+      doing right alignment
+
+0.33  Wed Jan 21 17:50:39 1998
+    - added left margin and right margin spec, left out by accident
+      before
+
 0.32  Sat Jan 17 11:45:48 1998
-    - fixed another bug
+    - fixed another bug :-(
 
 0.31  Fri Jan 16 17:23:18 1998
     - renamed module to Format.pm (was Manip.pm)
-      fixed a warning
+      fixed a warning; was operating on an undeffed string without
+      checking now check for defined strings
 
 0.30  Wed Jan 14 22:20:37 1998
     - added ability to do hanging indents, fixed the interface for a
@@ -26,3 +45,6 @@ Revision history for Perl extension Text::Format.
 0.10  Tue Jan  6 15:28:29 1998
     - original version
       routines are : wrap, fill
+      basically the same as Text::Wrap at this point just without the
+      chance for dying, it's just a basic module - Andreas Koenig
+      suggested to make it object oriented

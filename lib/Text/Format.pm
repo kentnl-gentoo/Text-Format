@@ -8,172 +8,187 @@ Text::Format - Various subroutines to manipulate text.
 
     use Text::Format;
 
-    $text = Text::Format->new({
-        columns        => 72,
-        tabstop        =>  8,
-        firstIndent    => "\t",
-        bodyIndent     => '',
-        rightFill      => 0,
-        rightAlign     => 0,
-        leftMargin     => 0,
-        rightMargin    => 0,
-        expandTabs     => 0,
-        extraSpace     => 0,
-        abbrevs        => {}, # reference to a hash
-        text           => [], # reference to a list
-        hangingIndent  => 0,
-        hangingText    => [], # reference to a list
-    }); # these are the default values
+    $text = Text::Format->new( {
+        columns        => 72, # format, paragraphs, center
+        tabstop        =>  8, # expand, unexpand, center
+        firstIndent    =>  4, # format, paragraphs
+        bodyIndent     =>  0, # format, paragraphs
+        rightFill      =>  0, # format, paragraphs
+        rightAlign     =>  0, # format, paragraphs
+        leftMargin     =>  0, # format, paragraphs, center
+        rightMargin    =>  0, # format, paragraphs, center
+        extraSpace     =>  0, # format, paragraphs
+        abbrevs        => {}, # format, paragraphs
+        text           => [], # all
+        hangingIndent  =>  0, # format, paragraphs
+        hangingText    => [], # format, paragraphs
+        noBreak        =>  0, # format, paragraphs
+        noBreakRegex   => {}, # format, paragraphs
+    } ); # these are the default values
 
-    $text = Text::Format->new();
-    print $text->wrap(@text);
-    print $text->fill(@text);
-    print $text->center(@text);
-    print $text->wrap([<FILEHANDLE>]);
-    print $text->fill([<FILEHANDLE>]);
-    print $text->expand(@text);
-    print $text->unexpand(@text);
-
-    $text = Text::Format->new
-        ({tabstop => 4,bodyIndent => "\t",text => \@text});
-    print $text->wrap();
-    print $text->fill();
-    print $text->center();
-    print $text->expand();
-    print $text->unexpand();
-
-    print Text::Format->new->wrap(@text);
     %abbr = (foo => 1, bar => 1);
     $text->abbrevs(\%abbr);
     $text->abbrevs();
+    $text->abbrevs({foo => 1,bar => 1});
     $text->abbrevs(qw/foo bar/);
     $text->text(\@text);
 
     $text->columns(132);
     $text->tabstop(4);
-    $text->expandTabs(1);
     $text->extraSpace(1);
-    $text->firstIndent("\t\t");
-    $text->bodyIndent("\t"
-    $text->config({tabstop => 4,firstIndent => ''});
+    $text->firstIndent(8);
+    $text->bodyIndent(4);
+    $text->config({tabstop => 4,firstIndent => 0});
     $text->rightFill(0);
     $text->rightAlign(0);
 
 =head1 DESCRIPTION
 
-The wrap routine will wrap under all circumstances even if the width
-isn't enough to contain the longest words.  Text::Wrap will die under
-these circumstances which isn't quite desirable in my opinion.  If
-columns is set to a small number and words are longer than that and the
-leading 'whitespace' than there will be a single word on each line.
-This will let you make a simple word list which could be indented or
-right aligned.  There is a chance for croaking if you try to subvert the
-module.
+The B<format> routine will format under all circumstances even if the
+width isn't enough to contain the longest words.  Text::Wrap will die
+under these circumstances, although I am told this is fixed, which isn't
+quite desirable in my opinion.  If columns is set to a small number and
+words are longer than that and the leading 'whitespace' than there will
+be a single word on each line.  This will let you make a simple word
+list which could be indented or right aligned.  There is a chance for
+croaking if you try to subvert the module.
+
 General setup should be explained with the below graph.
 
-                              Columns
+                              columns
 <------------------------------------------------------------>
-<---------><----->                                <---------->
-Left Margin Indent                                Right Margin
+<----------><------><---------------------------><----------->
+ leftMargin  indent  text is formatted into here  rightMargin
+
+indent is firstIndent or bodyIndent
 
 =over 4
 
-=item wrap @ARRAY || \@ARRAY || [<FILEHANDLE>] || NOTHING
+=item B<format> @ARRAY || \@ARRAY || [<FILEHANDLE>] || NOTHING
 
-Allows to do basic formatting of text into paragraphs, with indent for
-first line and following lines separately.  Can specify tab size and
-columns, width of total text, right fill with spaces and right align,
-right margin and left margin.  Strips all leading and trailing
-whitespace before proceding.  If right alignment is set or tab expansion
-is set or hanging indents is set then all tabs are expanded to spaces.
+Allows to do basic formatting of text into a paragraph, with indent for
+first line and body set separately.  Can specify tab size and columns,
+width of total text, right fill with spaces and right align, right
+margin and left margin.  Strips all leading and trailing whitespace
+before proceding.  Text is first split into words and then reassebled.
 
-=item fill @ARRAY || \@ARRAY || [<FILEHANDLE>] || NOTHING
+=item B<paragraphs> @ARRAY || \@ARRAY || [<FILEHANDLE>] || NOTHING
 
 Considers each element of text as a paragraph and if the indents are the
-same for first line and the rest of the lines then they are separated by
-a single empty line otherwise they follow one under the other.  If
-hanging indent is set then a single empty line will separate each
-paragraph as well.  Calls wrap to do the actual formatting.
+same for first line and the body then the paragraphs are separated by a
+single empty line otherwise they follow one under the other.  If hanging
+indent is set then a single empty line will separate each paragraph as
+well.  Calls B<format> to do the actual formatting.
 
-=item center @ARRAY || NOTHING
+=item B<center> @ARRAY || NOTHING
 
 Centers a list of strings in @ARRAY or internal text.  Empty lines
 appear as, you guessed it, empty lines.  Center strips all leading and
 trailing whitespace before proceding.  Left margin and right margin can
 be set.
 
-=item expand @ARRAY || NOTHING
+=item B<expand> @ARRAY || NOTHING
 
 Expand tabs in the list of text to tabstop number of spaces in @ARRAY or
-internal text.
+internal text.  Doesn't modify the internal text just passes back the
+modified text.
 
-=item unexpand @ARRAY || NOTHING
+=item B<unexpand> @ARRAY || NOTHING
 
 Tabstop number of spaces are turned into tabs in @ARRAY or internal
+text.  Doesn't modify the internal text just passes back the modified
 text.
 
-=item columns NUMBER || NOTHING
+=item B<new> \%HASH || NOTHING
+
+Instantiates the object.  If you pass a reference to a hash, or an
+anonymous hash then it's used in setting atributes.
+
+=item B<config> \%HASH
+
+Allows the configuration of all object attributes at once.  Returns the
+object prior to configuration.  You can use it to make a clone of your
+object before you change attributes.
+
+=item B<columns> NUMBER || NOTHING
 
 Set width of text or retrieve width.  This is total width and includes
 indentation and the right and left margins.
 
-=item tabstop NUMBER || NOTHING
+=item B<tabstop> NUMBER || NOTHING
 
-Set tabstop size or retrieve tabstop size.
+Set tabstop size or retrieve tabstop size, only used by expand and
+unexpand and center.
 
-=item rightFill 0 || 1 || NOTHING
+=item B<firstIndent> NUMBER || NOTHING
 
-Set right fill to true or retrieve its value.
+Set or get indent for the first line of paragraph.
 
-=item rightAlign 0 || 1 || NOTHING
+=item B<bodyIndent> NUMBER || NOTHING
 
-Set right align to true or retrieve its value.
+Set or get indent for the body of paragraph.
 
-=item leftMargin NUMBER || NOTHING
+=item B<leftMargin> NUMBER || NOTHING
 
 Set or get width of left margin.
 
-=item rightMargin NUMBER || NOTHING
+=item B<rightMargin> NUMBER || NOTHING
 
 Set or get width of right margin.
 
-=item expandTabs 0 || 1 || NOTHING
+=item B<rightFill> 0 || 1 || NOTHING
 
-Expand leading tabs to spaces, or in case of center, expand internal
-tabs.  Returns current setting of attribute.
+Set right fill to true or retrieve its value.
 
-=item abbrevs \%HASH || @ARRAY || NOTHING
+=item B<rightAlign> 0 || 1 || NOTHING
 
-Add to the current abbreviations, takes a reference to your array, if
-called a second time the original reference is removed.  Returns the
-current INTERNAL abbreviations.
+Set right align to true or retrieve its value.
 
-=item extraSpace 0 || 1 || NOTHING
+=item B<text> \@ARRAY || NOTHING
 
-Add extra space after end of sentence, normally wrap would add 1 space
-after end of sentence, if this is set to 1 then 2 spaces are used.
+Pass in a reference to your text that you want the routines to
+manipulate.  Returns the text held in the object.
 
-=item hangingText \@ARRAY || NOTHING
-
-The text that will be displayed in front of each paragraph, if you call
-wrap than only the first element is used, if you call fill then fill
-cycles through all of them.  If you have more paragraphs than elements in
-your array than the first one will get reused.  Pass a reference to your
-array.
-
-=item hangingIndent 0 || 1 || NOTHING
+=item B<hangingIndent> 0 || 1 || NOTHING
 
 Use hanging indents in front of a paragraph, returns current value of
 attribute.
 
-=item config \%HASH
+=item B<hangingText> \@ARRAY || NOTHING
 
-Allows the configuration of all object attributes at once.
+The text that will be displayed in front of each paragraph, if you call
+B<format> than only the first element is used, if you call B<paragraphs>
+then B<paragraphs> cycles through all of them.  If you have more
+paragraphs than elements in your array than the first one will get
+reused.  Pass a reference to your array.
 
-=item text \@ARRAY || NOTHING
+=item B<noBreak> 0 || 1 || NOTHING
 
-Pass in a reference to your text that you want the routines to
-manipulate.  Returns the text held in the object.
+Set whether you want to use the non-breaking space feature.
+
+=item B<noBreakRegex> \%HASH || NOTHING
+
+Pass in a reference to your hash that would hold the rgexes on which not
+to break.  Returns the hash.
+eg.
+
+{'Mrs?\.' => '^\S+$'}
+
+don't break names such as 
+Mr. Jones, Mrs. Jones
+
+=item B<extraSpace> 0 || 1 || NOTHING
+
+Add extra space after end of sentence, normally B<format> would add 1
+space after end of sentence, if this is set to 1 then 2 spaces are used.
+Abbreviations are not followed by two spaces.  There are a few internal
+abbreviations and you can add your own to the object with B<abbrevs>
+
+=item B<abbrevs> \%HASH || @ARRAY || NOTHING
+
+Add to the current abbreviations, takes a reference to your array, if
+called a second time the original reference is removed.  Returns the
+current INTERNAL abbreviations.
 
 =back
 
@@ -185,15 +200,32 @@ manipulate.  Returns the text held in the object.
     $text->rightFill(1);
     $text->columns(65);
     $text->tabstop(4);
-    print $text->wrap("a line to format to an indented regular
-            paragraph using 65 character wide display and a
-            tabstop of 4");
-    $text->expandTabs(1); # tab will be expanded to spaces
-    print $text->fill("paragraph one","paragraph two");
+    print $text->format("a line to format to an indented regular
+            paragraph using 65 character wide display");
+    print $text->paragraphs("paragraph one","paragraph two");
     print $text->center("hello world","nifty line 2");
     print $text->expand("\t\thello world\n","hmm,\twell\n");
     print $text->unexpand("    hello world\n","    hmm");
     $text->config({columns => 132, tabstop => 4});
+
+    $text = Text::Format->new();
+    print $text->format(@text);
+    print $text->paragraphs(@text);
+    print $text->center(@text);
+    print $text->format([<FILEHANDLE>]);
+    print $text->paragraphs([<FILEHANDLE>]);
+    print $text->expand(@text);
+    print $text->unexpand(@text);
+
+    $text = Text::Format->new
+        ({tabstop => 4,bodyIndent => 4,text => \@text});
+    print $text->format();
+    print $text->paragraphs();
+    print $text->center();
+    print $text->expand();
+    print $text->unexpand();
+
+    print Text::Format->new({columns => 95})->format(@text);
 
 =head1 BUGS
 
@@ -204,20 +236,28 @@ make up a nice wordlist.
 
 =head1 AUTHOR
 
-Gabor Egressy <gabor@vmunix.com>, some suggestions for improvement by
-Tom Phoenix, Brad Appleton, Byron Brummer, and Andreas Koenig
+Gabor Egressy B<gabor@vmunix.com>
 
 Copyright (c) 1998 Gabor Egressy.  All rights reserved.  All wrongs
 reversed.  This program is free software; you can redistribute and/or
 modify it under the same terms as Perl itself.
 
+=head1 ACKNOWLEDGEMENTS
+
+B<Tom Phoenix>
+found bug with code for two spaces at end of sentence and provided code
+fragment for a better solution, some preliminay suggestions on design
+
+B<Brad Appleton>
+suggesting and explanation of hanging indents, suggestion for
+non-breaking whitespace, general suggestions with regard to interface
+design
+
+B<Byron Brummer>
+suggestion for better interface design and object design, code for
+better implementation of getting abbreviations
+
 =head1 TODO
-
-    Add the following features :
-
-    1.  support for non-breaking whitespace
-        - use hash to store the regex on which not to break eg.
-          %hash = ('Mrs?\.' => '^\S+$');
 
 =cut
 
@@ -225,9 +265,9 @@ use Carp;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '0.33';
+$VERSION = '0.40';
 
-my ($make_line,%abbrev,$is_abbrev);
+my ($make_line,$is_abbrev,$do_break,%abbrev);
 
 # local abbreviations, you can add your own with add_abbrevs()
 %abbrev = (Mr  => 1,
@@ -237,13 +277,10 @@ my ($make_line,%abbrev,$is_abbrev);
            Jr  => 1,
 );
 
-# similar to Text::Wrap::wrap except that it sticks a newline at the end
-# of the last line and if so configured puts two spaces after a
-# (period|question mark|exclamation mark) if it ends a word unless that
-# word is in the abbreviations hash; it also doesn't die when columns is
-# shorter than the longest word + leading whitespace on the first line;
-# will also do right alignment or right fill with spaces
-sub wrap(\$@)
+# Formats text into a nice paragraph format.  Can set a variety of
+# attributes such as first line indent body indent left and right
+# margin, right align, right fill with spaces
+sub format(\$@)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
@@ -255,15 +292,8 @@ sub wrap(\$@)
     @wrap =  @{$this->{_text}}
         if @wrap < 1;
 
-    my ($first_indent,$body_indent) = ($this->{_findent},$this->{_bindent});
-    my ($findent,$bindent) = ($first_indent,$body_indent);
-
-    $findent =~ s/\t/' ' x $this->{_tabs}/eg;
-    $bindent =~ s/\t/' ' x $this->{_tabs}/eg;
-
-    ($first_indent,$body_indent) = ($findent,$bindent)
-        if $this->{_align} && ! $this->{_fill}
-            || $this->{_exp} || $this->{_hindent};
+    my $findent = ' ' x $this->{_findent};
+    my $bindent = ' ' x $this->{_bindent};
 
     my @words = split /\s+/,join ' ',@wrap;
     shift @words
@@ -272,11 +302,12 @@ sub wrap(\$@)
     @wrap = ();
     my ($line,$width,$abbrev);
     $abbrev = 0;
-    $width = $this->{_cols} - length($findent)
+    $width = $this->{_cols} - $this->{_findent}
         - $this->{_lmargin} - $this->{_rmargin};
     $line = shift @words;
     local (*is_abbrev) = $is_abbrev;
     local (*make_line) = $make_line;
+    local (*do_break)  = $do_break;
     $abbrev = $this->is_abbrev($line)
         if defined $line;
     while ($_ = shift @words) {
@@ -288,15 +319,19 @@ sub wrap(\$@)
             $line .= ' ' . $_;
         }
         else { last; }
-        $abbrev = is_abbrev($this,$_);
+        $abbrev = $this->is_abbrev($_);
     }
-    push @wrap,$this->make_line($line,$first_indent,$width)
+    ($line,$_) = $this->do_break($line,$_)
+        if $this->{_nobreak} && defined $line;
+    push @wrap,$this->make_line($line,$findent,$width)
         if defined $line;
+    $_ = shift @words
+        unless defined $_;
     $line = $_;
-    $width = $this->{_cols} - length($bindent)
+    $width = $this->{_cols} - $this->{_bindent}
         - $this->{_lmargin} - $this->{_rmargin};
     $abbrev = 0;
-    $abbrev = is_abbrev($this,$line)
+    $abbrev = $this->is_abbrev($line)
         if defined $line;
     for (@words) {
         if(length($_) + length($line) < $width - 1
@@ -307,12 +342,14 @@ sub wrap(\$@)
             $line .= ' ' . $_;
         }
         else {
-            push @wrap,$this->make_line($line,$body_indent,$width);
+            ($line,$_) = $this->do_break($line,$_)
+                if $this->{_nobreak};
+            push @wrap,$this->make_line($line,$bindent,$width);
             $line = $_;
         }
-        $abbrev = is_abbrev($this,$_);
+        $abbrev = $this->is_abbrev($_);
     }
-    push @wrap,$this->make_line($line,$body_indent,$width)
+    push @wrap,$this->make_line($line,$bindent,$width)
         if defined $line;
 
     if($this->{_hindent} && @wrap > 0) {
@@ -333,9 +370,9 @@ sub wrap(\$@)
     wantarray ? @wrap : join '', @wrap;
 }
 
-# format lines in text into paragraphs with each element of @wrap a paragraph
-# uses Text::Format->wrap for the formatting
-sub fill(\$@)
+# format lines in text into paragraphs with each element of @wrap a
+# paragraph uses Text::Format->format for the formatting
+sub paragraphs(\$@)
 {
     my $this = shift;
     croak "Bad method call" unless ref $this;
@@ -357,7 +394,7 @@ sub fill(\$@)
     for (@wrap) {
         $this->{_hindcurr} = $this->{_hindtext}->[$cnt]
             if $this->{_hindent};
-        $line = $this->wrap($_);
+        $line = $this->format($_);
         push @ret,$line . $end
             if defined $line && length $line > 0;
         ++$cnt;
@@ -383,8 +420,6 @@ sub center(\$@)
 
     for (@center) {
         s/(?:^\s+|\s+$)|\n//g;
-        s/\t/' ' x $this->{_tabs}/eg
-            if $this->{_exp};
         $tabs = tr/\t//; # count tabs
         substr($_,0,0) =
                 ' ' x int(($width - length($_)
@@ -442,52 +477,55 @@ sub new()
         if ref $this;
 
     $conf = {
-            _cols     => 72,
-            _tabs     => 8,
-            _findent  => "\t",
-            _bindent  => '',
-            _fill     => 0,
-            _align    => 0,
-            _lmargin  => 0,
-            _rmargin  => 0,
-            _exp      => 0,
-            _space    => 0,
-            _abbrs    => {},
-            _text     => [],
-            _hindent  => 0,
-            _hindtext => [],
-            _hindcurr => '',
+            _cols         => 72,
+            _tabs         =>  8,
+            _findent      =>  4,
+            _bindent      =>  0,
+            _fill         =>  0,
+            _align        =>  0,
+            _lmargin      =>  0,
+            _rmargin      =>  0,
+            _space        =>  0,
+            _abbrs        => {},
+            _text         => [],
+            _hindent      =>  0,
+            _hindtext     => [],
+            _hindcurr     => '',
+            _nobreak      =>  0,
+            _nobreakregex => {},
     };
 
     if(ref $ref eq 'HASH') {
-        $conf->{_cols} = $ref->{columns}
+        $conf->{_cols} = abs int $ref->{columns}
             if defined $ref->{columns};
-        $conf->{_tabs} = $ref->{tabstop}
+        $conf->{_tabs} = abs int $ref->{tabstop}
             if defined $ref->{tabstop};
-        $conf->{_findent} = $ref->{firstIndent}
+        $conf->{_findent} = abs int $ref->{firstIndent}
             if defined $ref->{firstIndent};
-        $conf->{_bindent} = $ref->{bodyIndent}
+        $conf->{_bindent} = abs int $ref->{bodyIndent}
             if defined $ref->{bodyIndent};
-        $conf->{_fill} = $ref->{rightFill}
+        $conf->{_fill} = abs int $ref->{rightFill}
             if defined $ref->{rightFill};
-        $conf->{_align} = $ref->{rightAlign}
+        $conf->{_align} = abs int $ref->{rightAlign}
             if defined $ref->{rightAlign};
-        $conf->{_lmargin} = $ref->{leftMargin}
+        $conf->{_lmargin} = abs int $ref->{leftMargin}
             if defined $ref->{leftMargin};
-        $conf->{_rmargin} = $ref->{rightMargin}
+        $conf->{_rmargin} = abs int $ref->{rightMargin}
             if defined $ref->{rightMargin};
-        $conf->{_exp} = $ref->{expandTabs}
-            if defined $ref->{expandTabs};
-        $conf->{_space} = $ref->{extraSpace}
+        $conf->{_space} = abs int $ref->{extraSpace}
             if defined $ref->{extraSpace};
         $conf->{_abbrs} = $ref->{abbrevs}
             if defined $ref->{abbrevs};
         $conf->{_text} = $ref->{text}
             if defined $ref->{text};
-        $conf->{_hindent} = $ref->{hangingIndent}
+        $conf->{_hindent} = abs int $ref->{hangingIndent}
             if defined $ref->{hangingIndent};
         $conf->{_hindtext} = $ref->{hangingText}
             if defined $ref->{hangingText};
+        $conf->{_nobreak} = abs int$ref->{noBreak}
+            if defined $ref->{noBreak};
+        $conf->{_nobreakregex} = $ref->{noBreakRegex}
+            if defined $ref->{noBreakRegex};
     }
 
     ref $this ? bless \%clone, ref $this : bless $conf, $this;
@@ -503,34 +541,36 @@ sub config
     croak "Not a reference to a hash" unless ref $conf eq 'HASH';
     my %clone = %{$this};
 
-    $this->{_cols} = $conf->{columns}
+    $this->{_cols} = abs int $conf->{columns}
         if defined $conf->{columns};
-    $this->{_tabs} = $conf->{tabstop}
+    $this->{_tabs} = abs int $conf->{tabstop}
         if defined $conf->{tabstop};
-    $this->{_findent} = $conf->{firstIndent}
+    $this->{_findent} = abs int $conf->{firstIndent}
         if defined $conf->{firstIndent};
-    $this->{_bindent} = $conf->{bodyIndent}
+    $this->{_bindent} = abs int $conf->{bodyIndent}
         if defined $conf->{bodyIndent};
-    $this->{_fill} = $conf->{rightFill}
+    $this->{_fill} = abs int $conf->{rightFill}
         if defined $conf->{rightFill};
-    $this->{_align} = $conf->{rightAlign}
+    $this->{_align} = abs int $conf->{rightAlign}
         if defined $conf->{rightAlign};
-    $this->{_lmargin} = $conf->{leftMargin}
+    $this->{_lmargin} = abs int $conf->{leftMargin}
         if defined $conf->{leftMargin};
-    $this->{_rmargin} = $conf->{rightMargin}
+    $this->{_rmargin} = abs int $conf->{rightMargin}
         if defined $conf->{rightMargin};
-    $this->{_exp} = $conf->{expandTabs}
-        if defined $conf->{expandTabs};
-    $this->{_space} = $conf->{extraSpace}
+    $this->{_space} = abs int $conf->{extraSpace}
         if defined $conf->{extraSpace};
     $this->{_abbrs} = $conf->{abbrevs}
         if defined $conf->{abbrevs};
     $this->{_text} = $conf->{text}
         if defined $conf->{text};
-    $this->{_hindent} = $conf->{hangingIndent}
+    $this->{_hindent} = abs int $conf->{hangingIndent}
         if defined $conf->{hangingIndent};
     $this->{_hindtext} = $conf->{hangingText}
         if defined $conf->{hangingText};
+    $this->{_nobreak} = abs int $conf->{noBreak}
+        if defined $conf->{noBreak};
+    $this->{_nobreakregex} = $conf->{noBreakRegex}
+        if defined $conf->{noBreakRegex};
 
     bless \%clone, ref $this;
 }
@@ -558,7 +598,7 @@ sub firstIndent(\$;$)
     my $this = shift;
     croak "Bad method call" unless ref $this;
 
-    @_ ? $this->{_findent} = shift : $this->{_findent};
+    @_ ? $this->{_findent} = abs int shift : $this->{_findent};
 }
 
 sub bodyIndent(\$;$)
@@ -566,7 +606,7 @@ sub bodyIndent(\$;$)
     my $this = shift;
     croak "Bad method call" unless ref $this;
 
-    @_ ? $this->{_bindent} = shift : $this->{_bindent};
+    @_ ? $this->{_bindent} = abs int shift : $this->{_bindent};
 }
 
 sub rightFill(\$;$)
@@ -599,15 +639,6 @@ sub rightMargin(\$;$)
     croak "Bad method call" unless ref $this;
 
     @_ ? $this->{_rmargin} = abs int shift : $this->{_rmargin};
-}
-
-# it's used by wrap, fill and center
-sub expandTabs(\$;$)
-{
-    my $this = shift;
-    croak "Bad method call" unless ref $this;
-
-    @_ ? $this->{_exp} = abs int shift : $this->{_exp};
 }
 
 # set or get whether to put extra space after a sentence
@@ -670,6 +701,26 @@ sub hangingText(\$;$)
     wantarray ? @{$this->{_hindtext}} : join ' ', @{$this->{_hindtext}};
 }
 
+sub noBreak(\$;$)
+{
+    my $this = shift;
+    croak "Bad method call" unless ref $this;
+
+    @_ ? $this->{_nobreak} = abs int shift : $this->{_nobreak};
+}
+
+sub noBreakRegex(\$;$)
+{
+    my $this = shift;
+    croak "Bad method call" unless ref $this;
+    my $nobreak = shift;
+    
+    $this->{_nobreakregex} = $nobreak
+        if ref $nobreak eq 'HASH';
+
+    %{$this->{_nobreakregex}};
+}
+
 $make_line = sub
 {
     my $this = shift;
@@ -681,7 +732,8 @@ $make_line = sub
         if $this->{_fill} && ! $this->{_align};
     $line = $lmargin . $lead_white . $line . $fill . "\n"
         if defined $line;
-    substr($line,0,0) = ' ' x ($this->{_cols} - (length($line) - 1))
+    substr($line,0,0) = ' ' x ($this->{_cols}
+            - $this->{_rmargin} - (length($line) - 1))
         if $this->{_align} && ! $this->{_fill} && defined $line;
 
     $line;
@@ -700,6 +752,32 @@ $is_abbrev = sub
             exists($abbrev{$word}) || exists(${$this->{_abbrs}}{$word});
 
     0;
+};
+
+$do_break = sub
+{
+    my $this = shift;
+    my ($line,$next_line) = @_;
+    my ($last_word) = $line =~ /(\S+)$/;
+    my $no_break = 0;
+
+    for (keys %{$this->{_nobreakregex}}) {
+        $no_break = 1
+            if $last_word =~ m$_
+                && $next_line =~ m${$this->{_nobreakregex}}{$_};
+    }
+    if($no_break) {
+        # if there is at least two words on a line
+        if($line =~ /\S+\s+\S+/) {
+            $line =~ s/(\S)\s+\S+$/$1/;
+            $next_line = $last_word . ' ' . $next_line;
+        }
+        else {
+            $line .= ' ' . $next_line;
+            $next_line = undef;
+        }
+    }
+    ($line,$next_line);
 };
 
 1;
