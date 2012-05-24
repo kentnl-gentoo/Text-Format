@@ -1,5 +1,5 @@
 ---
-abstract: 'Various subroutines to format text.'
+abstract: 'various subroutines to format text.'
 author:
   - 'Shlomi Fish <shlomif@cpan.org>'
 build_requires:
@@ -7,7 +7,8 @@ build_requires:
   vars: 0
 configure_requires:
   Module::Build: 0
-generated_by: 'Module::Build version 0.3617'
+dynamic_config: 1
+generated_by: 'Module::Build version 0.3901, CPAN::Meta::Converter version 2.120630'
 keywords:
   - format
   - formatting
@@ -24,7 +25,7 @@ name: Text-Format
 provides:
   Text::Format:
     file: lib/Text/Format.pm
-    version: 0.53
+    version: 0.54
 requires:
   Carp: 0
   strict: 0
@@ -34,4 +35,4 @@ resources:
   homepage: http://www.shlomifish.org/open-source/projects/Text-Format/
   license: http://dev.perl.org/licenses/
   repository: http://bitbucket.org/shlomif/web-cpan
-version: 0.53
+version: 0.54
