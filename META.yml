@@ -25,7 +25,7 @@ name: Text-Format
 provides:
   Text::Format:
     file: lib/Text/Format.pm
-    version: 0.55
+    version: 0.56
 requires:
   Carp: 0
   strict: 0
@@ -35,4 +35,4 @@ resources:
   homepage: http://www.shlomifish.org/open-source/projects/Text-Format/
   license: http://dev.perl.org/licenses/
   repository: http://bitbucket.org/shlomif/web-cpan
-version: 0.55
+version: 0.56

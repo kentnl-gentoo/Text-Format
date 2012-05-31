@@ -1,5 +1,9 @@
 package Text::Format;
+
 require 5.003;
+
+use strict;
+use warnings;
 
 =head1 NAME
 
@@ -326,10 +330,10 @@ at end of sentence feature.
 =cut
 
 use Carp;
-use strict;
+
 use vars qw($VERSION);
 
-$VERSION = '0.55';
+$VERSION = '0.56';
 
 # local abbreviations, you can add your own with abbrevs()
 my %abbrev = (
