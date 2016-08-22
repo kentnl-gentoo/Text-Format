@@ -57,7 +57,7 @@ is set to a small number and words are longer than that and the leading
 let you make a simple word list which could be indented or right
 aligned.  There is a chance for croaking if you try to subvert the
 module.  If you don't pass in text then the internal text is worked on,
-though not modfied.
+though not modified.
 
 I<Text::Format> is meant for more powerful text formatting than what
 I<Text::Wrap> allows.  I also have a module called I<Text::NWrap> that
@@ -349,7 +349,7 @@ use Carp;
 
 use vars qw($VERSION);
 
-$VERSION = '0.59';
+$VERSION = '0.60';
 
 # local abbreviations, you can add your own with abbrevs()
 my %abbrev = (

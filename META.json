@@ -4,7 +4,7 @@
       "Shlomi Fish <shlomif@cpan.org>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "Module::Build version 0.4007, CPAN::Meta::Converter version 2.132830",
+   "generated_by" : "Module::Build version 0.4218",
    "keywords" : [
       "format",
       "formatting",
@@ -47,7 +47,7 @@
    "provides" : {
       "Text::Format" : {
          "file" : "lib/Text/Format.pm",
-         "version" : "0.59"
+         "version" : "0.60"
       }
    },
    "release_status" : "stable",
@@ -60,5 +60,6 @@
          "url" : "http://bitbucket.org/shlomif/web-cpan"
       }
    },
-   "version" : "0.59"
+   "version" : "0.60",
+   "x_serialization_backend" : "JSON::PP version 2.27300"
 }
