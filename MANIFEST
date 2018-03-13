@@ -8,9 +8,5 @@ Makefile.PL
 README
 inc/Test/Run/Builder.pm
 lib/Text/Format.pm
-t/cpan-changes.t
 t/format.t
 t/justify.t
-t/pod-coverage.t
-t/pod.t
-t/style-trailing-space.t
